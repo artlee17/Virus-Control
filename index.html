@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MIDI Patch Commander Pro</title>
+    <title>Virus MIDI Control</title>
     
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="data:application/manifest+json,{'name':'MidiControl','short_name':'Midi','start_url':'.','display':'standalone','orientation':'landscape'}">
+    <meta name="theme-color" content="#0d0d0d">
+    <link rel="manifest" href="data:application/manifest+json,{'name':'Virus MIDI','short_name':'Virus','start_url':'.','display':'standalone','background_color':'#0d0d0d','theme_color':'#0d0d0d','orientation':'landscape'}">
 
     <style>
         :root { --accent: #00f2ff; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #00f2ff; --panic: #ff3333; }
@@ -16,12 +17,13 @@
             margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
         }
         
-        .setup-bar { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 15px; }
-        select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; flex-grow: 1; max-width: 200px; font-size: 14px; }
+        .setup-bar { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 10px; }
+        select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; flex-grow: 1; max-width: 180px; font-size: 14px; }
         
-        .btn-header { border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .btn-header { border: none; padding: 10px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 12px; }
         #btn-init { background: var(--accent); color: #000; }
         #btn-panic { background: var(--panic); color: #fff; }
+        #btn-fs { background: #444; color: #fff; }
         
         .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 120px); }
         
@@ -43,14 +45,15 @@
             transform: translateY(3px); box-shadow: 0 0 20px rgba(0, 242, 255, 0.4); 
         }
 
-        #debug-box { background: #000; color: #0f0; font-family: monospace; font-size: 11px; height: 50px; padding: 5px 20px; overflow-y: hidden; border-top: 1px solid #333; }
+        #debug-box { background: #000; color: #0f0; font-family: monospace; font-size: 11px; height: 45px; padding: 5px 20px; overflow-y: hidden; border-top: 1px solid #333; }
     </style>
 </head>
 <body>
 
     <div class="setup-bar">
-        <button id="btn-init" class="btn-header">INITIALIZE</button>
-        <select id="midi-select"><option>Wait for Init...</option></select>
+        <button id="btn-init" class="btn-header">INIT</button>
+        <select id="midi-select"><option>Midi Port...</option></select>
+        <button id="btn-fs" class="btn-header">FULLSCREEN</button>
         <button id="btn-panic" class="btn-header">PANIC</button>
     </div>
 
@@ -67,6 +70,15 @@
     <div id="debug-box">> System Ready.</div>
 
     <script>
+        // --- 1. SERVICE WORKER REGISTRATION (For PWA Install) ---
+        if ('serviceWorker' in navigator) {
+            const swCode = `self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request)); });`;
+            const blob = new Blob([swCode], {type: 'text/javascript'});
+            const url = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(url).catch(err => console.log("SW failed", err));
+        }
+
+        // --- 2. MIDI LOGIC ---
         let midiOut = null;
         let outputs = [];
         const logger = document.getElementById('debug-box');
@@ -99,7 +111,7 @@
                         selector.appendChild(opt);
                     });
                     midiOut = outputs[selector.selectedIndex] || outputs[0];
-                    if(midiOut) log("Connected: " + midiOut.name);
+                    if(midiOut) log("Active: " + midiOut.name);
                 };
                 access.onstatechange = updatePorts;
                 updatePorts();
@@ -110,26 +122,32 @@
             } catch (err) { log("Error: " + err.message); }
         }
 
+        // --- 3. UI HANDLERS ---
         document.getElementById('btn-init').onclick = initMidi;
 
-        // PANIC FUNCTION
+        document.getElementById('btn-fs').onclick = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                log("Fullscreen Enabled");
+            } else {
+                document.exitFullscreen();
+                log("Fullscreen Disabled");
+            }
+        };
+
         document.getElementById('btn-panic').onclick = () => {
             if (!midiOut) return;
-            // 1. All Notes Off (CC 123)
             midiOut.send([CHAN3_CC, 123, 0]);
-            // 2. Reset Faders Visually and MIDI
-            const resetList = [{id:'f1', cc:1, disp:'v1'}, {id:'f2', cc:7, disp:'v2'}, {id:'f3', cc:30, disp:'v3'}];
-            resetList.forEach(item => {
+            const resets = [{id:'f1', cc:1, disp:'v1'}, {id:'f2', cc:7, disp:'v2'}, {id:'f3', cc:30, disp:'v3'}];
+            resets.forEach(item => {
                 document.getElementById(item.id).value = 0;
                 updateFader(item.cc, 0, item.disp);
             });
-            // 3. Reset Pitch
             document.getElementById('pitch').value = 64;
             document.getElementById('v-pitch').innerText = 64;
             midiOut.send([CHAN3_PB, 0, 64]);
-            // 4. Clear Pad Selection
             document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
-            log("PANIC: All Reset & Notes Off Sent");
+            log("PANIC: Reset All");
         };
 
         function updateFader(cc, val, displayId) {
