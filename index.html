@@ -3,192 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro MIDI Patch Commander</title>
+    <title>MIDI Commander FIX</title>
     <style>
-        :root { --accent: #00f2ff; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #00f2ff; }
-        body { 
-            background: var(--bg); color: white; font-family: 'Inter', -apple-system, sans-serif; 
-            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
-        }
+        :root { --accent: #00f2ff; --bg: #000; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .setup-bar { background: #222; padding: 15px; display: flex; gap: 10px; align-items: center; border-bottom: 2px solid var(--accent); }
+        select { flex-grow: 1; background: #333; color: white; padding: 10px; border: none; }
+        button { background: var(--accent); border: none; padding: 12px; font-weight: bold; border-radius: 5px; cursor: pointer; }
         
-        /* Header */
-        .setup-bar { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 15px; }
-        select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; flex-grow: 1; max-width: 300px; font-size: 14px; }
-        #startMidi { background: var(--accent); border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .main-container { display: flex; flex: 1; padding: 10px; gap: 10px; }
+        .faders { display: flex; flex: 0.4; justify-content: space-around; background: #111; padding: 10px; border-radius: 10px; }
+        .fader-group { display: flex; flex-direction: column; align-items: center; }
+        input[type=range] { appearance: slider-vertical; width: 40px; height: 150px; }
         
-        .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 110px); }
-        
-        /* Left: 4 Faders */
-        .fader-section { display: flex; flex: 0.35; background: var(--panel); border-radius: 12px; justify-content: space-around; padding: 15px 5px; border: 1px solid #333; }
-        .fader-group { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 24%; }
-        .fader-label { color: #888; font-size: 10px; text-transform: uppercase; text-align: center; height: 35px; line-height: 1.2; font-weight: bold; }
-        input[type=range] { appearance: slider-vertical; width: 40px; height: 60%; background: #333; border-radius: 10px; outline: none; }
-        .val-indicator { color: var(--accent); font-family: monospace; font-size: 14px; font-weight: bold; margin-top: 5px; background: #000; padding: 2px 8px; border-radius: 4px; }
+        .buttons { flex: 0.6; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; overflow-y: auto; }
+        .midi-pad { background: #222; color: #888; border: none; height: 60px; font-size: 14px; font-weight: bold; border-radius: 5px; }
+        .midi-pad.selected { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent); }
 
-        /* Right: 21 Exclusive Buttons */
-        .button-section { flex: 0.65; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow-y: auto; padding-right: 5px; }
-        .midi-pad { 
-            background: #252525; border: none; border-radius: 8px; color: #bbb; 
-            font-size: 16px; font-weight: 700; height: 65px; cursor: pointer;
-            border-bottom: 4px solid #000; transition: all 0.1s ease;
-            display: flex; align-items: center; justify-content: center; text-align: center; padding: 5px;
-        }
-        .midi-pad.selected { 
-            background: var(--active-bg); color: #000; border-bottom: 0px; 
-            transform: translateY(3px); box-shadow: 0 0 20px rgba(0, 242, 255, 0.4); 
-        }
-
-        /* Debug Logger */
-        #debug-log { background: #000; color: #0f0; font-family: monospace; font-size: 10px; height: 40px; padding: 5px 20px; overflow-y: hidden; border-top: 1px solid #333; }
+        #debug-box { background: #111; color: #0f0; font-family: monospace; font-size: 12px; padding: 10px; height: 80px; overflow-y: scroll; border-top: 1px solid #333; }
     </style>
 </head>
 <body>
 
-    <div class="setup-bar">
-        <button id="startMidi">INITIALIZE MIDI</button>
-        <select id="midi-select"><option>Wait for Initialize...</option></select>
-        <div id="status" style="font-size: 11px; color: var(--accent); font-weight: bold;">CH 3</div>
+<div class="setup-bar">
+    <button id="btn-init">CONNECT</button>
+    <select id="midi-out-select"><option>Tap Connect...</option></select>
+</div>
+
+<div class="main-container">
+    <div class="faders">
+        <div class="fader-group"><small>Pitch</small><input type="range" id="p-slid" min="0" max="127" value="64"><span id="p-val">64</span></div>
+        <div class="fader-group"><small>Mod</small><input type="range" oninput="sendCC(1, this.value, 'm1')" min="0" max="127" value="0"><span id="m1">0</span></div>
+        <div class="fader-group"><small>Rel</small><input type="range" oninput="sendCC(7, this.value, 'm2')" min="0" max="127" value="0"><span id="m2">0</span></div>
+        <div class="fader-group"><small>Knob</small><input type="range" oninput="sendCC(30, this.value, 'm3')" min="0" max="127" value="0"><span id="m3">0</span></div>
     </div>
 
-    <div class="main-container">
-        <div class="fader-section">
-            <div class="fader-group">
-                <div class="fader-label">Pitch</div>
-                <input type="range" id="pitch" orient="vertical" min="0" max="127" value="64">
-                <div class="val-indicator" id="v-pitch">64</div>
-            </div>
-            <div class="fader-group">
-                <div class="fader-label">Mod Wheel<br>(CC1)</div>
-                <input type="range" orient="vertical" min="0" max="127" value="0" oninput="updateFader(1, this.value, 'v1')">
-                <div class="val-indicator" id="v1">0</div>
-            </div>
-            <div class="fader-group">
-                <div class="fader-label">Release<br>(CC7)</div>
-                <input type="range" orient="vertical" min="0" max="127" value="0" oninput="updateFader(7, this.value, 'v2')">
-                <div class="val-indicator" id="v2">0</div>
-            </div>
-            <div class="fader-group">
-                <div class="fader-label">Mod Knob<br>(CC30)</div>
-                <input type="range" orient="vertical" min="0" max="127" value="0" oninput="updateFader(30, this.value, 'v3')">
-                <div class="val-indicator" id="v3">0</div>
-            </div>
-        </div>
+    <div class="buttons" id="btn-grid"></div>
+</div>
 
-        <div class="button-section" id="pad-grid"></div>
-    </div>
+<div id="debug-box">System Log Ready...</div>
 
-    <div id="debug-log">System Ready. Click Initialize.</div>
+<script>
+    const logger = document.getElementById('debug-box');
+    function log(m) { 
+        logger.innerHTML += `<div>> ${m}</div>`;
+        logger.scrollTop = logger.scrollHeight;
+    }
 
-    <script>
-        let midiOut = null;
-        let outputs = [];
-        const CHAN3_CC = 0xB2; 
-        const CHAN3_PB = 0xE2;
+    let midiOut = null;
+    const presets = [
+        "A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A A18",
+        "Piano", "Movie Strings", "Organ", "Atmo Reality", "Pad Exp", "Outer W",
+        "Stellar", "Steel", "Riser", "Drone", "Key Cin", "NinthHvn", 
+        "I Made This", "Space Brass", "Crystal"
+    ];
 
-        const presets = [
-            { n: "A1 First", v: 0 }, { n: "B74 Short", v: 1 }, { n: "B74 Long", v: 2 },
-            { n: "B3", v: 3 }, { n: "Indigo A84", v: 4 }, { n: "Virus A A18", v: 5 },
-            { n: "Piano", v: 6 }, { n: "Movie Strings", v: 7 }, { n: "Organ Interstellar", v: 8 },
-            { n: "Atmo Reality", v: 9 }, { n: "Pad Expanse", v: 10 }, { n: "Pad Outer Worlds", v: 11 },
-            { n: "Pad Stellar", v: 12 }, { n: "Atmo Man of Steel", v: 13 }, { n: "Braaam Riser", v: 14 },
-            { n: "Drone Analog", v: 15 }, { n: "Key Cinematic", v: 16 }, { n: "NinthHvn", v: 17 },
-            { n: "I Made This", v: 18 }, { n: "Space Brass", v: 19 }, { n: "Crystal", v: 20 }
-        ];
+    async function start() {
+        log("Attempting MIDI access...");
+        try {
+            const midi = await navigator.requestMIDIAccess({ sysex: true });
+            log("Access Granted!");
+            
+            const dropdown = document.getElementById('midi-out-select');
+            const outputs = Array.from(midi.outputs.values());
+            
+            dropdown.innerHTML = "";
+            outputs.forEach((out, i) => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.innerText = out.name;
+                dropdown.appendChild(opt);
+                log("Found device: " + out.name);
+            });
 
-        function log(msg) {
-            const d = document.getElementById('debug-log');
-            d.innerText = "> " + msg;
+            midiOut = outputs[0];
+            dropdown.onchange = (e) => { midiOut = outputs[e.target.value]; log("Selected: " + midiOut.name); };
+            
+            if(midiOut) log("Active Output: " + midiOut.name);
+
+        } catch (e) {
+            log("ERROR: " + e.message);
+            if (location.protocol !== 'https:') log("CRITICAL: You MUST use HTTPS.");
         }
+    }
 
-        async function initMidi() {
-            if (!navigator.requestMIDIAccess) {
-                log("Error: Browser does not support Web MIDI.");
-                return;
-            }
-            try {
-                const access = await navigator.requestMIDIAccess({ sysex: true });
-                log("MIDI Access Granted.");
-                
-                const updatePorts = () => {
-                    outputs = Array.from(access.outputs.values());
-                    const selector = document.getElementById('midi-select');
-                    selector.innerHTML = '';
+    document.getElementById('btn-init').onclick = start;
 
-                    if (outputs.length === 0) {
-                        selector.innerHTML = '<option>No Outputs Found</option>';
-                        log("No physical/virtual ports detected.");
-                        return;
-                    }
-
-                    outputs.forEach((out, i) => {
-                        const opt = document.createElement('option');
-                        opt.value = i;
-                        opt.innerText = out.name;
-                        if (out.name.toLowerCase().includes('usb') || out.name.toLowerCase().includes('peripheral')) {
-                            opt.selected = true;
-                            midiOut = out;
-                        }
-                        selector.appendChild(opt);
-                    });
-
-                    if (!midiOut) midiOut = outputs[0];
-                    log("Connected to: " + midiOut.name);
-                };
-
-                access.onstatechange = (e) => {
-                    log("Port state changed: " + e.port.name + " is " + e.port.state);
-                    updatePorts();
-                };
-                
-                updatePorts();
-
-                document.getElementById('midi-select').onchange = (e) => {
-                    midiOut = outputs[e.target.value];
-                    log("Target switched to: " + midiOut.name);
-                };
-
-            } catch (err) {
-                log("Access Denied. Check HTTPS/SSL.");
-            }
+    function sendCC(cc, val, label) {
+        document.getElementById(label).innerText = val;
+        if (midiOut) {
+            midiOut.send([0xB2, cc, val]); // Ch 3
+            log(`Sent CC ${cc} Val ${val}`);
         }
+    }
 
-        document.getElementById('startMidi').onclick = initMidi;
+    // Pitch logic
+    const ps = document.getElementById('p-slid');
+    ps.oninput = () => { 
+        document.getElementById('p-val').innerText = ps.value;
+        if(midiOut) midiOut.send([0xE2, 0, ps.value]); 
+    };
+    ps.onmouseup = ps.ontouchend = () => {
+        ps.value = 64; document.getElementById('p-val').innerText = 64;
+        if(midiOut) midiOut.send([0xE2, 0, 64]);
+        log("Pitch Snapback");
+    };
 
-        function updateFader(cc, val, displayId) {
-            document.getElementById(displayId).innerText = val;
-            if (midiOut) {
-                midiOut.send([CHAN3_CC, cc, val]);
-                log(`Sent CC ${cc} val ${val} to ${midiOut.name}`);
+    // Build Grid
+    const grid = document.getElementById('btn-grid');
+    presets.forEach((name, i) => {
+        const b = document.createElement('button');
+        b.className = 'midi-pad';
+        b.innerText = name;
+        b.onclick = () => {
+            document.querySelectorAll('.midi-pad').forEach(p => p.classList.remove('selected'));
+            b.classList.add('selected');
+            const val = (i === 18) ? 18 : (i === 19) ? 19 : (i === 20) ? 20 : i;
+            if(midiOut) {
+                midiOut.send([0xB2, 27, val]);
+                log(`Sent CC 27 Val ${val}`);
             }
-        }
-
-        const p = document.getElementById('pitch');
-        p.oninput = () => {
-            document.getElementById('v-pitch').innerText = p.value;
-            if (midiOut) midiOut.send([CHAN3_PB, 0, p.value]);
         };
-        p.onmouseup = p.ontouchend = () => {
-            p.value = 64;
-            document.getElementById('v-pitch').innerText = 64;
-            if (midiOut) midiOut.send([CHAN3_PB, 0, 64]);
-            log("Pitch Reset to 64");
-        };
+        grid.appendChild(b);
+    });
 
-        const grid = document.getElementById('pad-grid');
-        presets.forEach((item) => {
-            const btn = document.createElement('button');
-            btn.className = 'midi-pad';
-            btn.innerText = item.n;
-            btn.onclick = () => {
-                document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                if (midiOut) {
-                    midiOut.send([CHAN3_CC, 27, item.v]);
-                    log(`Patch: ${item.n} (Val ${item.v}) sent.`);
-                }
-            };
-            grid.appendChild(btn);
-        });
-    </script>
+</script>
 </body>
 </html>
