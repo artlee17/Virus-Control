@@ -14,7 +14,8 @@
         :root { --accent: #00f2ff; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #00f2ff; --panic: #ff3333; }
         body { 
             background: var(--bg); color: white; font-family: 'Inter', sans-serif; 
-            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
+            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
         
         .setup-bar { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 10px; }
@@ -70,7 +71,7 @@
     <div id="debug-box">> System Ready.</div>
 
     <script>
-        // --- 1. SERVICE WORKER REGISTRATION (For PWA Install) ---
+        // --- 1. SERVICE WORKER REGISTRATION ---
         if ('serviceWorker' in navigator) {
             const swCode = `self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request)); });`;
             const blob = new Blob([swCode], {type: 'text/javascript'});
@@ -78,7 +79,26 @@
             navigator.serviceWorker.register(url).catch(err => console.log("SW failed", err));
         }
 
-        // --- 2. MIDI LOGIC ---
+        // --- 2. WAKE LOCK LOGIC ---
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    log("Screen Wake Lock Active.");
+                    wakeLock.addEventListener('release', () => { log("Wake Lock Released."); });
+                }
+            } catch (err) { log("WakeLock Error: " + err.message); }
+        }
+
+        // Re-acquire lock when app comes back to foreground
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                wakeLock = await navigator.wakeLock.request('screen');
+            }
+        });
+
+        // --- 3. MIDI LOGIC ---
         let midiOut = null;
         let outputs = [];
         const logger = document.getElementById('debug-box');
@@ -98,6 +118,7 @@
         ];
 
         async function initMidi() {
+            await requestWakeLock(); // Lock screen on Init
             try {
                 const access = await navigator.requestMIDIAccess({ sysex: true });
                 const updatePorts = () => {
@@ -122,16 +143,14 @@
             } catch (err) { log("Error: " + err.message); }
         }
 
-        // --- 3. UI HANDLERS ---
+        // --- 4. UI HANDLERS ---
         document.getElementById('btn-init').onclick = initMidi;
 
         document.getElementById('btn-fs').onclick = () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
-                log("Fullscreen Enabled");
             } else {
                 document.exitFullscreen();
-                log("Fullscreen Disabled");
             }
         };
 
