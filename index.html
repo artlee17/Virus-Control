@@ -3,26 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro MIDI Patch Strip</title>
+    <title>Pro MIDI Patch Commander</title>
     <style>
         :root { --accent: #00f2ff; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #00f2ff; }
-        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { 
+            background: var(--bg); color: white; font-family: 'Inter', -apple-system, sans-serif; 
+            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
+        }
         
-        /* Header & Dropdown */
-        .setup-bar { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 10px; }
-        select { background: #333; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px; flex-grow: 1; max-width: 250px; font-size: 12px; }
-        #startMidi { background: var(--accent); border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        /* Header */
+        .setup-bar { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 15px; }
+        select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; flex-grow: 1; max-width: 300px; font-size: 14px; }
+        #startMidi { background: var(--accent); border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; white-space: nowrap; }
         
-        .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 60px); }
+        .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 110px); }
         
         /* Left: 4 Faders */
         .fader-section { display: flex; flex: 0.35; background: var(--panel); border-radius: 12px; justify-content: space-around; padding: 15px 5px; border: 1px solid #333; }
         .fader-group { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 24%; }
         .fader-label { color: #888; font-size: 10px; text-transform: uppercase; text-align: center; height: 35px; line-height: 1.2; font-weight: bold; }
-        input[type=range] { appearance: slider-vertical; width: 35px; height: 60%; background: #333; border-radius: 10px; outline: none; }
-        
-        /* Value Labels */
-        .val-indicator { color: var(--accent); font-family: monospace; font-size: 14px; font-weight: bold; margin-top: 5px; background: #000; padding: 2px 8px; border-radius: 4px; min-width: 30px; text-align: center; }
+        input[type=range] { appearance: slider-vertical; width: 40px; height: 60%; background: #333; border-radius: 10px; outline: none; }
+        .val-indicator { color: var(--accent); font-family: monospace; font-size: 14px; font-weight: bold; margin-top: 5px; background: #000; padding: 2px 8px; border-radius: 4px; }
 
         /* Right: 21 Exclusive Buttons */
         .button-section { flex: 0.65; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow-y: auto; padding-right: 5px; }
@@ -32,19 +33,21 @@
             border-bottom: 4px solid #000; transition: all 0.1s ease;
             display: flex; align-items: center; justify-content: center; text-align: center; padding: 5px;
         }
-
         .midi-pad.selected { 
             background: var(--active-bg); color: #000; border-bottom: 0px; 
             transform: translateY(3px); box-shadow: 0 0 20px rgba(0, 242, 255, 0.4); 
         }
+
+        /* Debug Logger */
+        #debug-log { background: #000; color: #0f0; font-family: monospace; font-size: 10px; height: 40px; padding: 5px 20px; overflow-y: hidden; border-top: 1px solid #333; }
     </style>
 </head>
 <body>
 
     <div class="setup-bar">
-        <button id="startMidi">REFRESH MIDI</button>
-        <select id="midi-select"><option>Select MIDI Output...</option></select>
-        <div id="status" style="font-size: 11px; color: #888;">CH 3</div>
+        <button id="startMidi">INITIALIZE MIDI</button>
+        <select id="midi-select"><option>Wait for Initialize...</option></select>
+        <div id="status" style="font-size: 11px; color: var(--accent); font-weight: bold;">CH 3</div>
     </div>
 
     <div class="main-container">
@@ -74,6 +77,8 @@
         <div class="button-section" id="pad-grid"></div>
     </div>
 
+    <div id="debug-log">System Ready. Click Initialize.</div>
+
     <script>
         let midiOut = null;
         let outputs = [];
@@ -90,38 +95,71 @@
             { n: "I Made This", v: 18 }, { n: "Space Brass", v: 19 }, { n: "Crystal", v: 20 }
         ];
 
+        function log(msg) {
+            const d = document.getElementById('debug-log');
+            d.innerText = "> " + msg;
+        }
+
         async function initMidi() {
+            if (!navigator.requestMIDIAccess) {
+                log("Error: Browser does not support Web MIDI.");
+                return;
+            }
             try {
-                const access = await navigator.requestMIDIAccess();
-                const midiSelect = document.getElementById('midi-select');
-                midiSelect.innerHTML = ''; // Clear existing
+                const access = await navigator.requestMIDIAccess({ sysex: true });
+                log("MIDI Access Granted.");
                 
-                outputs = Array.from(access.outputs.values());
-                
-                if (outputs.length === 0) {
-                    midiSelect.innerHTML = '<option>No MIDI Devices Found</option>';
-                    return;
-                }
+                const updatePorts = () => {
+                    outputs = Array.from(access.outputs.values());
+                    const selector = document.getElementById('midi-select');
+                    selector.innerHTML = '';
 
-                outputs.forEach((output, index) => {
-                    const opt = document.createElement('option');
-                    opt.value = index;
-                    opt.innerText = output.name;
-                    midiSelect.appendChild(opt);
-                });
+                    if (outputs.length === 0) {
+                        selector.innerHTML = '<option>No Outputs Found</option>';
+                        log("No physical/virtual ports detected.");
+                        return;
+                    }
 
-                midiOut = outputs[0]; // Default to first
-                midiSelect.onchange = (e) => {
-                    midiOut = outputs[e.target.value];
+                    outputs.forEach((out, i) => {
+                        const opt = document.createElement('option');
+                        opt.value = i;
+                        opt.innerText = out.name;
+                        if (out.name.toLowerCase().includes('usb') || out.name.toLowerCase().includes('peripheral')) {
+                            opt.selected = true;
+                            midiOut = out;
+                        }
+                        selector.appendChild(opt);
+                    });
+
+                    if (!midiOut) midiOut = outputs[0];
+                    log("Connected to: " + midiOut.name);
                 };
-            } catch(e) { console.error("MIDI Init Failed", e); }
+
+                access.onstatechange = (e) => {
+                    log("Port state changed: " + e.port.name + " is " + e.port.state);
+                    updatePorts();
+                };
+                
+                updatePorts();
+
+                document.getElementById('midi-select').onchange = (e) => {
+                    midiOut = outputs[e.target.value];
+                    log("Target switched to: " + midiOut.name);
+                };
+
+            } catch (err) {
+                log("Access Denied. Check HTTPS/SSL.");
+            }
         }
 
         document.getElementById('startMidi').onclick = initMidi;
 
         function updateFader(cc, val, displayId) {
             document.getElementById(displayId).innerText = val;
-            if (midiOut) midiOut.send([CHAN3_CC, cc, val]);
+            if (midiOut) {
+                midiOut.send([CHAN3_CC, cc, val]);
+                log(`Sent CC ${cc} val ${val} to ${midiOut.name}`);
+            }
         }
 
         const p = document.getElementById('pitch');
@@ -133,6 +171,7 @@
             p.value = 64;
             document.getElementById('v-pitch').innerText = 64;
             if (midiOut) midiOut.send([CHAN3_PB, 0, 64]);
+            log("Pitch Reset to 64");
         };
 
         const grid = document.getElementById('pad-grid');
@@ -143,13 +182,13 @@
             btn.onclick = () => {
                 document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
-                if (midiOut) midiOut.send([CHAN3_CC, 27, item.v]);
+                if (midiOut) {
+                    midiOut.send([CHAN3_CC, 27, item.v]);
+                    log(`Patch: ${item.n} (Val ${item.v}) sent.`);
+                }
             };
             grid.appendChild(btn);
         });
-
-        // Initialize on load attempt (some browsers allow if focus is handled)
-        window.onload = initMidi;
     </script>
 </body>
 </html>
