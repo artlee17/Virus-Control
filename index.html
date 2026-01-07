@@ -18,7 +18,7 @@
             padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
         
-        .setup-bar { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 8px; }
+        .setup-bar { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 8px; flex-shrink: 0; }
         select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; flex-grow: 1; max-width: 150px; font-size: 14px; }
         
         .btn-header { border: none; padding: 10px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 11px; }
@@ -27,33 +27,57 @@
         #btn-fs { background: #444; color: #fff; }
         #btn-wake { background: #f39c12; color: #000; }
         
-        .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 120px); }
+        .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 120px); min-height: 0; }
         
-        /* Left Panel */
-        .fader-section { display: flex; flex-direction: column; flex: 0.35; background: var(--panel); border-radius: 12px; padding: 10px; border: 1px solid #333; gap: 10px; }
-        .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: flex-end; padding-bottom: 5px; }
-        .fader-group { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 24%; }
+        /* Left Panel - Optimized for Height */
+        .fader-section { 
+            display: flex; flex-direction: column; flex: 0.35; 
+            background: var(--panel); border-radius: 12px; padding: 10px; 
+            border: 1px solid #333; gap: 5px; 
+        }
+        
+        .v-fader-row { 
+            display: flex; flex: 1; 
+            justify-content: space-around; align-items: stretch; 
+            padding-bottom: 5px;
+            min-height: 0;
+        }
+        
+        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 24%; }
         .fader-label { color: #888; font-size: 9px; text-transform: uppercase; text-align: center; font-weight: bold; }
-        input[type=range][orient=vertical] { appearance: slider-vertical; width: 30px; height: 100%; background: #333; border-radius: 10px; outline: none; }
         
-        /* Macro Slider */
-        .macro-container { border-top: 1px solid #333; padding-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        input[id=macro-slider] { appearance: none; width: 90%; height: 12px; background: #333; border-radius: 6px; outline: none; }
-        input[id=macro-slider]::-webkit-slider-thumb { appearance: none; width: 24px; height: 24px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 2px solid #000; }
+        input[type=range][orient=vertical] { 
+            appearance: slider-vertical; 
+            width: 35px; 
+            height: 100%; 
+            background: #333; 
+            border-radius: 10px; 
+            outline: none;
+            margin: 5px 0;
+        }
         
-        .val-indicator { color: var(--accent); font-family: monospace; font-size: 12px; font-weight: bold; background: #000; padding: 2px 6px; border-radius: 4px; }
+        /* Master Slider at bottom */
+        .macro-container { 
+            flex-shrink: 0; 
+            border-top: 1px solid #333; padding-top: 8px; 
+            display: flex; flex-direction: column; align-items: center; gap: 4px; 
+        }
+        input[id=macro-slider] { appearance: none; width: 90%; height: 10px; background: #333; border-radius: 5px; outline: none; }
+        input[id=macro-slider]::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 2px solid #000; }
+        
+        .val-indicator { color: var(--accent); font-family: monospace; font-size: 11px; font-weight: bold; background: #000; padding: 1px 5px; border-radius: 3px; }
 
         /* Right Panel */
-        .button-section { flex: 0.65; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow-y: auto; padding-right: 5px; }
+        .button-section { flex: 0.65; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; padding-right: 5px; }
         .midi-pad { 
             background: #252525; border: none; border-radius: 8px; color: #bbb; 
-            font-size: 16px; font-weight: 700; height: 60px; cursor: pointer;
+            font-size: 15px; font-weight: 700; height: 55px; cursor: pointer;
             border-bottom: 4px solid #000; transition: all 0.1s ease;
             display: flex; align-items: center; justify-content: center; text-align: center;
         }
         .midi-pad.selected { background: var(--active-bg); color: #000; border-bottom: 0px; transform: translateY(3px); }
 
-        #debug-box { background: #000; color: #0f0; font-family: monospace; font-size: 11px; height: 45px; padding: 5px 20px; overflow-y: hidden; border-top: 1px solid #333; }
+        #debug-box { background: #000; color: #0f0; font-family: monospace; font-size: 11px; height: 40px; padding: 5px 20px; overflow-y: hidden; border-top: 1px solid #333; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -76,7 +100,7 @@
             </div>
             
             <div class="macro-container">
-                <div class="fader-label">Macro CC 20 (0-64)</div>
+                <div class="fader-label">Master (CC 20: 0-64)</div>
                 <input type="range" id="macro-slider" min="0" max="64" value="0" oninput="updateFader(20, this.value, 'v-macro')">
                 <div class="val-indicator" id="v-macro">0</div>
             </div>
@@ -158,37 +182,23 @@
             else document.exitFullscreen();
         };
 
-        // UPDATED PANIC BUTTON
         document.getElementById('btn-panic').onclick = () => {
             if (!midiOut) return;
-            
-            // 1. Send All Notes Off
             midiOut.send([CHAN3_CC, 123, 0]);
-            
-            // 2. Performance CCs: Reset Visually AND send MIDI 0
-            const resets = [
-                {id:'f1', cc:1, disp:'v1'}, 
-                {id:'f2', cc:7, disp:'v2'}, 
-                {id:'f3', cc:30, disp:'v3'}
-            ];
+            const resets = [{id:'f1', cc:1, disp:'v1'}, {id:'f2', cc:7, disp:'v2'}, {id:'f3', cc:30, disp:'v3'}];
             resets.forEach(item => { 
                 document.getElementById(item.id).value = 0; 
                 updateFader(item.cc, 0, item.disp); 
             });
-
-            // 3. Macro Slider (CC 20): Reset VISUALLY ONLY, do NOT send MIDI
+            // Visual reset only for Master CC 20
             document.getElementById('macro-slider').value = 0;
-            document.getElementById('v-macro').innerText = "0 (held)"; // Feedback to user
-
-            // 4. Pitch: Reset Visually and MIDI 64
+            document.getElementById('v-macro').innerText = "0 (held)";
+            
             document.getElementById('pitch').value = 64; 
             document.getElementById('v-pitch').innerText = 64;
             midiOut.send([0xE2, 0, 64]);
-
-            // 5. Clear Buttons
             document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
-            
-            log("PANIC: CCs Reset. Macro CC20 Maintained.");
+            log("PANIC: Resets Done. Master Held.");
         };
 
         function updateFader(cc, val, displayId) {
