@@ -3,66 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus MIDI Pro</title>
+    <title>Virus MIDI USB</title>
     <style>
         :root { --red: #ff3333; --purple: #a044ff; --bg: #0d0d0d; --panel: #1a1a1a; }
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); color: white; font-family: sans-serif; }
         body { display: flex; flex-direction: column; }
+        
+        .setup-bar { background: #222; padding: 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; }
+        .btn-h { border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; color: white; background: #444; }
+        select { background: #333; color: white; border: 1px solid #555; padding: 6px; border-radius: 4px; flex-grow: 1; margin: 0 10px; }
 
-        /* Modal Pop-up Styling */
-        #permission-modal { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; 
-            align-items: center; justify-content: center; text-align: center; padding: 20px;
-        }
-        .modal-content { background: #222; padding: 30px; border-radius: 15px; border: 2px solid var(--red); max-width: 400px; }
-        .modal-btn { background: var(--red); color: white; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; margin-top: 20px; cursor: pointer; }
-
-        .setup-bar { background: #222; padding: 5px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; height: 45px; }
-        .btn-header { border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px; color: white; background: #444; }
-        select { background: #333; color: white; border: 1px solid #555; padding: 6px; border-radius: 4px; flex-grow: 1; margin: 0 10px; font-size: 11px; }
-        .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; height: 40px; }
-        .tab { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; color: #666; font-size: 13px; }
+        .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; }
+        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; color: #666; }
         .v-mode .tab-v { color: var(--red); border-bottom: 3px solid var(--red); background: var(--panel); }
         .c-mode .tab-c { color: var(--purple); border-bottom: 3px solid var(--purple); background: var(--panel); }
-        .main-container { display: flex; flex: 1; padding: 8px; gap: 10px; overflow: hidden; }
+
+        .main-container { display: flex; flex: 1; padding: 10px; gap: 10px; overflow: hidden; }
+        
+        /* Fader Styling */
         .fader-section { width: 42%; background: var(--panel); border-radius: 10px; padding: 10px; border: 1px solid #333; display: flex; flex-direction: column; }
         .v-fader-row { display: flex; flex: 1; justify-content: space-around; margin-bottom: 5px; }
         .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; }
         .fader-label { color: #888; font-size: 9px; text-transform: uppercase; font-weight: bold; height: 15px; }
+        
         input[type=range][orient=vertical] { appearance: slider-vertical; width: 30px; height: 80%; background: #333; }
-        .macro-container { border-top: 1px solid #444; padding-top: 5px; text-align: center; }
+        .macro-container { border-top: 1px solid #444; padding-top: 8px; text-align: center; }
         input[id=macro] { width: 100%; height: 25px; }
+
         .val-box { font-family: monospace; font-size: 11px; background: #000; padding: 2px 5px; border-radius: 4px; border: 1px solid #444; min-width: 25px; text-align: center; }
         .v-mode .val-box { color: var(--red); border-color: var(--red); }
         .c-mode .val-box { color: var(--purple); border-color: var(--purple); }
         .v-mode input[type=range] { accent-color: var(--red); }
         .c-mode input[type=range] { accent-color: var(--purple); }
+
+        /* Button Column */
         .scroll-wrapper { width: 58%; height: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
         .grid { display: none; grid-template-columns: repeat(2, 1fr); gap: 8px; padding-bottom: 60px; }
         .grid.active { display: grid; }
         .midi-pad { background: #252525; border: none; border-radius: 6px; color: #bbb; font-size: 11px; font-weight: 700; min-height: 55px; cursor: pointer; border-bottom: 3px solid #000; }
-        .v-mode .midi-pad.selected { background: var(--red); color: white; border-bottom: 0px; transform: translateY(2px); }
-        .c-mode .midi-pad.selected { background: var(--purple); color: white; border-bottom: 0px; transform: translateY(2px); }
-        #debug { background: #000; color: #0f0; font-family: monospace; font-size: 10px; padding: 5px 10px; border-top: 1px solid #333; height: 25px; flex-shrink: 0; }
+        .v-mode .selected { background: var(--red); color: white; border-bottom: 0px; transform: translateY(2px); }
+        .c-mode .selected { background: var(--purple); color: white; border-bottom: 0px; transform: translateY(2px); }
+
+        #debug { background: #000; color: #666; font-family: monospace; font-size: 10px; padding: 5px 10px; border-top: 1px solid #333; height: 25px; flex-shrink: 0; }
     </style>
 </head>
-<body id="app-body" class="v-mode">
-
-    <div id="permission-modal">
-        <div class="modal-content">
-            <h2 style="color:var(--red)">MIDI ACCESS BLOCKED</h2>
-            <p>Chrome needs permission to talk to your USB devices.</p>
-            <p style="font-size:12px; color:#aaa">Look for the <b>Piano icon</b> or <b>Lock icon</b> in your address bar and set MIDI to <b>"Allow"</b>.</p>
-            <button class="modal-btn" onclick="initMidi()">TRY AGAIN</button>
-        </div>
-    </div>
+<body id="body" class="v-mode">
 
     <div class="setup-bar">
-        <button id="btn-init" class="btn-header" style="background:#ff3333">INIT MIDI</button>
-        <select id="midi-select"><option>Tap Init...</option></select>
-        <button id="btn-fs" class="btn-header">FS</button>
-        <button id="btn-panic" class="btn-header" style="background:#900">PANIC</button>
+        <button id="btn-init" class="btn-h" style="background:var(--red)">INIT USB</button>
+        <select id="midi-select"><option>Select Port...</option></select>
+        <button id="btn-fs" class="btn-h">FS</button>
+        <button id="btn-panic" class="btn-h" style="background:#900">PANIC</button>
     </div>
 
     <div class="tabs">
@@ -112,113 +103,81 @@
         </div>
     </div>
 
-    <div id="debug">> System Ready. Click INIT.</div>
+    <div id="debug">> USB Disconnected.</div>
 
     <script>
-        let midiOut = null;
-        let outputs = [];
-        let activeChan = 11; // CH 12
+        let midi = null; let chan = 11;
 
-        const log = (m) => { document.getElementById('debug').innerText = "> " + m; };
-
-        async function initMidi() {
-            // Hide modal initially
-            document.getElementById('permission-modal').style.display = 'none';
-
-            try {
-                // Requesting sysex: true FORCES the permission prompt in Chrome
-                const access = await navigator.requestMIDIAccess({ sysex: true });
-                
-                outputs = Array.from(access.outputs.values());
-                const sel = document.getElementById('midi-select');
-                sel.innerHTML = '';
-
-                if (outputs.length === 0) {
-                    log("USB Connected, but no Ports found.");
-                    return;
-                }
-
-                outputs.forEach((out, i) => {
-                    let opt = document.createElement('option');
-                    opt.value = i; opt.innerText = out.name;
-                    sel.appendChild(opt);
-                });
-
-                sel.onchange = (e) => {
-                    midiOut = outputs[e.target.value];
-                    log("Port Switched: " + midiOut.name);
-                };
-
-                midiOut = outputs[0];
-                log("Ready: " + midiOut.name);
-                
-            } catch (e) { 
-                log("PERMISSION DENIED");
-                document.getElementById('permission-modal').style.display = 'flex';
-            }
-        }
-
-        // Fader/Button Logic remains the same
-        function setMode(mode) {
-            const body = document.getElementById('app-body');
-            if (mode === 'v') {
-                activeChan = 11; body.className = 'v-mode';
+        function setMode(m) {
+            const b = document.getElementById('body');
+            document.getElementById('grid-v').classList.remove('active');
+            document.getElementById('grid-c').classList.remove('active');
+            if(m === 'v') {
+                chan = 11; b.className = 'v-mode';
                 document.getElementById('grid-v').classList.add('active');
-                document.getElementById('grid-c').classList.remove('active');
-                document.getElementById('t-v').className = 'tab tab-v';
-                document.getElementById('t-c').className = 'tab';
-                setLabels("Pitch", "Mod W", "Rel", "Mod K");
+                setL("Pitch", "Mod W", "Rel", "Mod K");
             } else {
-                activeChan = 13; body.className = 'c-mode';
+                chan = 13; b.className = 'c-mode';
                 document.getElementById('grid-c').classList.add('active');
-                document.getElementById('grid-v').classList.remove('active');
-                document.getElementById('t-c').className = 'tab tab-c';
-                document.getElementById('t-v').className = 'tab';
-                setLabels("Expr", "Timbre", "Vib", "Dyn");
+                setL("Expr", "Timbre", "Vib", "Dyn");
             }
         }
 
-        function setLabels(p, f1, f2, f3) {
+        function setL(p, f1, f2, f3) {
             document.getElementById('lbl-p').innerText = p;
             document.getElementById('lbl-1').innerText = f1;
             document.getElementById('lbl-2').innerText = f2;
             document.getElementById('lbl-3').innerText = f3;
         }
 
+        async function init() {
+            try {
+                const a = await navigator.requestMIDIAccess();
+                const out = Array.from(a.outputs.values());
+                const s = document.getElementById('midi-select');
+                s.innerHTML = '';
+                out.forEach((o, i) => {
+                    let opt = document.createElement('option');
+                    opt.value = i; opt.innerText = o.name;
+                    s.appendChild(opt);
+                });
+                s.onchange = (e) => { midi = out[e.target.value]; };
+                midi = out[0];
+                document.getElementById('debug').innerText = "> Connected: " + (midi ? midi.name : "None");
+            } catch (e) { document.getElementById('debug').innerText = "> Access Denied."; }
+        }
+
         function upd(cc, val, id) {
             document.getElementById(id).innerText = val;
-            if (midiOut) midiOut.send([0xB0 + activeChan, cc, val]);
+            if (midi) midi.send([0xB0 + chan, cc, val]);
         }
 
         function sCC(cc, val, btn) {
             document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
-            if (midiOut) midiOut.send([0xB0 + activeChan, cc, val]);
+            if (midi) midi.send([0xB0 + chan, cc, val]);
         }
 
         function sPC(val, btn) {
             document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
-            if (midiOut) midiOut.send([0xC0 + activeChan, val]);
+            if (midi) midi.send([0xC0 + chan, val]);
         }
 
         const p = document.getElementById('pitch');
         p.oninput = () => {
             document.getElementById('v-p').innerText = p.value;
-            if (midiOut) midiOut.send([0xE0 + activeChan, 0, p.value]);
+            if (midi) midi.send([0xE0 + chan, 0, p.value]);
         };
         p.onmouseup = p.ontouchend = () => {
             p.value = 64; document.getElementById('v-p').innerText = 64;
-            if (midiOut) midiOut.send([0xE0 + activeChan, 0, 64]);
+            if (midi) midi.send([0xE0 + chan, 0, 64]);
         };
 
-        document.getElementById('btn-init').onclick = initMidi;
+        document.getElementById('btn-init').onclick = init;
         document.getElementById('btn-fs').onclick = () => {
             if (!document.fullscreenElement) document.documentElement.requestFullscreen();
             else document.exitFullscreen();
-        };
-        document.getElementById('btn-panic').onclick = () => {
-            if (midiOut) midiOut.send([0xB0 + activeChan, 123, 0]);
         };
     </script>
 </body>
