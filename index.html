@@ -3,136 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus & Cinematic Master</title>
+    <title>Virus & Cinematic Pro</title>
     <style>
-        :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #ff3333; }
+        :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
         
-        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); color: white; font-family: 'Inter', sans-serif; }
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); color: white; font-family: sans-serif; }
         body { display: flex; flex-direction: column; }
         
-        .setup-bar { background: #222; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; gap: 5px; }
+        /* Header */
+        .setup-bar { background: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 8px; flex-shrink: 0; }
+        .btn-header { border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; color: white; }
+        select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; flex-grow: 1; }
+
+        /* Tabs */
         .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; }
-        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-weight: bold; color: #666; font-size: 13px; }
+        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; color: #666; }
         .tab.active { background: var(--panel); color: var(--accent); border-bottom: 3px solid var(--accent); }
         
-        /* Layout Container */
-        .main-container { display: flex; flex: 1; padding: 10px; gap: 10px; overflow: hidden; height: calc(100% - 110px); }
+        /* Main Layout */
+        .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; overflow: hidden; }
         
-        /* Fader Panel */
-        .fader-section { display: flex; flex-direction: column; width: 35%; background: var(--panel); border-radius: 12px; padding: 10px; border: 1px solid #333; height: 100%; box-sizing: border-box; }
-        .v-fader-row { display: flex; flex: 1; justify-content: space-around; min-height: 0; }
-        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; }
-        .fader-label { color: #888; font-size: 9px; text-transform: uppercase; font-weight: bold; height: 25px; text-align: center; }
-        input[type=range][orient=vertical] { appearance: slider-vertical; width: 32px; height: 70%; background: #333; }
+        /* Fader Column */
+        .fader-section { width: 35%; background: var(--panel); border-radius: 12px; padding: 15px; border: 1px solid #333; display: flex; flex-direction: column; }
+        .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; margin-bottom: 10px; }
+        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
+        .fader-label { color: #888; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; text-align: center; min-height: 24px; }
         
-        .macro-container { border-top: 1px solid #333; padding-top: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
-        input[id=macro-slider] { appearance: none; width: 90%; height: 8px; background: #333; border-radius: 4px; }
-        input[id=macro-slider]::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; border: 2px solid #fff; }
+        input[type=range][orient=vertical] { appearance: slider-vertical; width: 35px; height: 100%; background: #333; }
         
-        /* FULL SCROLLABLE BUTTON SECTION */
-        .button-section { 
-            width: 65%; 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 10px; 
-            overflow-y: scroll; 
-            height: 100%;
-            padding-bottom: 40px; 
-            -webkit-overflow-scrolling: touch; 
-        }
-        .midi-pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 13px; font-weight: 700; height: 65px; cursor: pointer; border-bottom: 4px solid #000; display: flex; align-items: center; justify-content: center; text-align: center; padding: 5px; }
-        .midi-pad.selected { background: var(--accent); color: #fff; border-bottom: 0px; transform: translateY(3px); }
+        .macro-container { border-top: 1px solid #444; padding-top: 10px; text-align: center; }
+        input[id=macro-slider] { width: 100%; margin: 10px 0; }
 
-        #debug-box { background: #000; color: #ff3333; font-family: monospace; font-size: 10px; height: 30px; padding: 5px 15px; border-top: 1px solid #333; flex-shrink: 0; }
-        .val-indicator { color: var(--accent); font-family: monospace; font-size: 10px; background: #000; padding: 1px 4px; border-radius: 3px; }
+        /* Button Column */
+        .button-section { width: 65%; height: 100%; overflow-y: auto; display: none; }
+        .button-section.active { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding-bottom: 50px; }
         
-        .btn-header { border: none; padding: 8px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px; white-space: nowrap; }
+        .midi-pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 14px; font-weight: 700; min-height: 70px; cursor: pointer; border-bottom: 4px solid #000; }
+        .midi-pad:active, .midi-pad.selected { background: var(--accent); color: white; border-bottom: 0px; transform: translateY(3px); }
+
+        .val-indicator { color: var(--accent); font-family: monospace; font-size: 12px; background: #000; padding: 2px 6px; border-radius: 4px; margin-top: 5px; }
+        #debug-box { background: #000; color: #ff3333; font-family: monospace; font-size: 11px; padding: 10px; border-top: 1px solid #333; }
     </style>
 </head>
 <body>
 
     <div class="setup-bar">
-        <button id="btn-init" class="btn-header" style="background:#ff3333; color:white;">INIT USB</button>
-        <select id="midi-select" style="background:#333; color:white; border:1px solid #555; padding:6px; border-radius:4px; flex-grow: 1;"><option>Midi Port...</option></select>
-        <button id="btn-fs" class="btn-header" style="background:#444; color:white;">FULLSCREEN</button>
-        <button id="btn-panic" class="btn-header" style="background:#990000; color:white;">PANIC</button>
+        <button id="btn-init" class="btn-header" style="background:var(--accent)">INIT USB</button>
+        <select id="midi-select"><option>Select Port...</option></select>
+        <button id="btn-fs" class="btn-header" style="background:#444">FULLSCREEN</button>
+        <button id="btn-panic" class="btn-header" style="background:#900">PANIC</button>
     </div>
 
     <div class="tabs">
-        <div id="tab-v" class="tab active" onclick="updateLayout('virus')">VIRUS (CH 3)</div>
-        <div id="tab-c" class="tab" onclick="updateLayout('cinematic')">CINEMATIC (CH 4)</div>
+        <div id="tab-v-btn" class="tab active" onclick="showPanel('virus')">VIRUS (CH 3)</div>
+        <div id="tab-c-btn" class="tab" onclick="showPanel('cine')">CINEMATIC (CH 4)</div>
     </div>
 
     <div class="main-container">
         <div class="fader-section">
             <div class="v-fader-row">
-                <div class="fader-group"><div class="fader-label" id="lbl-p">Pitch</div><input type="range" id="pitch" orient="vertical" min="0" max="127" value="64"><div class="val-indicator" id="v-pitch">64</div></div>
-                <div class="fader-group"><div class="fader-label" id="lbl-f1">Mod W</div><input type="range" id="f1" orient="vertical" min="0" max="127" value="0" oninput="updateFader(1, this.value, 'v1')"><div class="val-indicator" id="v1">0</div></div>
-                <div class="fader-group"><div class="fader-label" id="lbl-f2">Rel</div><input type="range" id="f2" orient="vertical" min="0" max="127" value="0" oninput="updateFader(7, this.value, 'v2')"><div class="val-indicator" id="v2">0</div></div>
-                <div class="fader-group"><div class="fader-label" id="lbl-f3">Mod K</div><input type="range" id="f3" orient="vertical" min="0" max="127" value="0" oninput="updateFader(30, this.value, 'v3')"><div class="val-indicator" id="v3">0</div></div>
+                <div class="fader-group"><div class="fader-label" id="l-p">Pitch</div><input type="range" id="pitch" orient="vertical" min="0" max="127" value="64"><div class="val-indicator" id="v-pitch">64</div></div>
+                <div class="fader-group"><div class="fader-label" id="l-1">Mod W</div><input type="range" id="f1" orient="vertical" min="0" max="127" value="0" oninput="upd(1, this.value, 'v1')"><div class="val-indicator" id="v1">0</div></div>
+                <div class="fader-group"><div class="fader-label" id="l-2">Rel</div><input type="range" id="f2" orient="vertical" min="0" max="127" value="0" oninput="upd(7, this.value, 'v2')"><div class="val-indicator" id="v2">0</div></div>
+                <div class="fader-group"><div class="fader-label" id="l-3">Mod K</div><input type="range" id="f3" orient="vertical" min="0" max="127" value="0" oninput="upd(30, this.value, 'v3')"><div class="val-indicator" id="v3">0</div></div>
             </div>
             <div class="macro-container">
                 <div class="fader-label">Master (CC 20)</div>
-                <input type="range" id="macro-slider" min="0" max="64" value="0" oninput="updateFader(20, this.value, 'v-macro')">
-                <div class="val-indicator" id="v-macro">0</div>
+                <input type="range" id="macro-slider" min="0" max="64" value="0" oninput="upd(20, this.value, 'v-m')">
+                <div class="val-indicator" id="v-m">0</div>
             </div>
         </div>
-        <div class="button-section" id="pad-grid"></div>
+
+        <div id="panel-virus" class="button-section active">
+            <button class="midi-pad" onclick="sendCC(27,0,this)">A1 First</button>
+            <button class="midi-pad" onclick="sendCC(27,1,this)">B74 Short</button>
+            <button class="midi-pad" onclick="sendCC(27,2,this)">B74 Long</button>
+            <button class="midi-pad" onclick="sendCC(27,3,this)">B3 Organ</button>
+            <button class="midi-pad" onclick="sendCC(27,4,this)">Indigo 84</button>
+            <button class="midi-pad" onclick="sendCC(27,5,this)">Virus A18</button>
+            <button class="midi-pad" onclick="sendCC(27,6,this)">Piano</button>
+            <button class="midi-pad" onclick="sendCC(27,7,this)">Movie Str</button>
+            <button class="midi-pad" onclick="sendCC(27,8,this)">Organ Int</button>
+            <button class="midi-pad" onclick="sendCC(27,9,this)">Atmo Real</button>
+            <button class="midi-pad" onclick="sendCC(27,10,this)">Pad Exp</button>
+            <button class="midi-pad" onclick="sendCC(27,11,this)">Outer W</button>
+            <button class="midi-pad" onclick="sendCC(27,12,this)">Stellar</button>
+            <button class="midi-pad" onclick="sendCC(27,13,this)">Steel</button>
+        </div>
+
+        <div id="panel-cine" class="button-section">
+            <button class="midi-pad" style="grid-column: span 2; height: 150px;" onclick="sendPC(0,this)">TEST (PC 1)</button>
+        </div>
     </div>
 
     <div id="debug-box">> System Ready.</div>
 
     <script>
         let midiOut = null;
-        let activeChan = 2; // CH 3
-        const grid = document.getElementById('pad-grid');
+        let activeChan = 2; // Channel 3
 
-        const layouts = {
-            virus: {
-                chan: 2,
-                labels: ["Pitch", "Mod W", "Release", "Mod K"],
-                presets: [
-                    { n: "A1 First", v: 0 }, { n: "B74 Short", v: 1 }, { n: "B74 Long", v: 2 },
-                    { n: "B3 Organ", v: 3 }, { n: "Indigo 84", v: 4 }, { n: "Virus A18", v: 5 },
-                    { n: "Piano", v: 6 }, { n: "Movie Str", v: 7 }, { n: "Organ Int", v: 8 },
-                    { n: "Atmo Real", v: 9 }, { n: "Pad Exp", v: 10 }, { n: "Outer W", v: 11 },
-                    { n: "Pad Stellar", v: 12 }, { n: "Man Steel", v: 13 }, { n: "Braaam", v: 14 },
-                    { n: "Drone", v: 15 }, { n: "Cinematic", v: 16 }, { n: "NinthHvn", v: 17 },
-                    { n: "Custom 1", v: 18 }, { n: "Space Brass", v: 19 }, { n: "Crystal", v: 20 }
-                ]
-            },
-            cinematic: {
-                chan: 3,
-                labels: ["Exp", "Expr", "Lyc", "Timbre"],
-                presets: [
-                    { n: "TEST (PC 1)", v: 0, type: "pc" }
-                ]
+        function log(m) { document.getElementById('debug-box').innerText = "> " + m; }
+
+        function showPanel(mode) {
+            document.querySelectorAll('.button-section').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            if(mode === 'virus') {
+                activeChan = 2;
+                document.getElementById('panel-virus').classList.add('active');
+                document.getElementById('tab-v-btn').classList.add('active');
+                document.getElementById('l-p').innerText = "Pitch";
+                document.getElementById('l-1').innerText = "Mod W";
+                document.getElementById('l-2').innerText = "Rel";
+                document.getElementById('l-3').innerText = "Mod K";
+            } else {
+                activeChan = 3; // Channel 4
+                document.getElementById('panel-cine').classList.add('active');
+                document.getElementById('tab-c-btn').classList.add('active');
+                document.getElementById('l-p').innerText = "Expr";
+                document.getElementById('l-1').innerText = "Timbre";
+                document.getElementById('l-2').innerText = "Vib";
+                document.getElementById('l-3').innerText = "Dyn";
             }
+            log("Switched to " + mode.toUpperCase());
+        }
+
+        async function init() {
+            try {
+                const access = await navigator.requestMIDIAccess();
+                const outputs = Array.from(access.outputs.values());
+                const sel = document.getElementById('midi-select');
+                sel.innerHTML = '';
+                outputs.forEach((out, i) => {
+                    let opt = document.createElement('option');
+                    opt.value = i; opt.innerText = out.name;
+                    sel.appendChild(opt);
+                });
+                midiOut = outputs[0];
+                log("Connected: " + (midiOut ? midiOut.name : "None"));
+            } catch (e) { log("Error: " + e); }
+        }
+
+        function upd(cc, val, id) {
+            document.getElementById(id).innerText = val;
+            if (midiOut) midiOut.send([0xB0 + activeChan, cc, val]);
+        }
+
+        function sendCC(cc, val, btn) {
+            document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            if (midiOut) midiOut.send([0xB0 + activeChan, cc, val]);
+        }
+
+        function sendPC(val, btn) {
+            document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            if (midiOut) midiOut.send([0xC0 + activeChan, val]);
+            log("PC Sent: " + (val + 1));
+        }
+
+        const p = document.getElementById('pitch');
+        p.oninput = () => {
+            document.getElementById('v-pitch').innerText = p.value;
+            if (midiOut) midiOut.send([0xE0 + activeChan, 0, p.value]);
+        };
+        p.onmouseup = p.ontouchend = () => {
+            p.value = 64; document.getElementById('v-pitch').innerText = 64;
+            if (midiOut) midiOut.send([0xE0 + activeChan, 0, 64]);
         };
 
-        function updateLayout(key) {
-            const config = layouts[key];
-            activeChan = config.chan;
-            
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(key === 'virus' ? 'tab-v' : 'tab-c').classList.add('active');
-
-            document.getElementById('lbl-p').innerText = config.labels[0];
-            document.getElementById('lbl-f1').innerText = config.labels[1];
-            document.getElementById('lbl-f2').innerText = config.labels[2];
-            document.getElementById('lbl-f3').innerText = config.labels[3];
-
-            grid.innerHTML = '';
-            config.presets.forEach(item => {
-                const btn = document.createElement('button');
-                btn.className = 'midi-pad';
-                btn.innerText = item.n;
-                btn.onclick = () => {
-                    document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                    if (midiOut) {
-                        if (item.type === "pc") {
-                            midiOut.send([0xC0 + activeChan, item.v]);
-                            log("PC Sent: " + (item.v + 1));
-                        } else {
-                            midiOut.send([0xB0 + active
+        document.getElementById('btn-init').onclick = init;
+        document.getElementById('btn-fs').onclick = () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        };
+        document.getElementById('btn-panic').onclick = () => {
+            if (midiOut) midiOut.send([0xB0 + activeChan, 123, 0]);
+        };
+    </script>
+</body>
+</html>
