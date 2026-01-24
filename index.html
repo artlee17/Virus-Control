@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus Controller Master</title>
+    <title>Virus CH12 / Cine CH14</title>
     <style>
         :root { --red: #ff3333; --purple: #a044ff; --bg: #0d0d0d; --panel: #1a1a1a; }
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); color: white; font-family: sans-serif; }
@@ -41,14 +41,14 @@
 
     <div class="setup-bar">
         <button id="btn-init" class="btn-header" style="background:#ff3333">REFRESH MIDI</button>
-        <select id="midi-select"><option>Waiting for Init...</option></select>
+        <select id="midi-select"><option>Tap Refresh...</option></select>
         <button id="btn-fs" class="btn-header">FS</button>
         <button id="btn-panic" class="btn-header" style="background:#900">PANIC</button>
     </div>
 
     <div class="tabs">
-        <div id="t-v" class="tab tab-v" onclick="setMode('v')">VIRUS (CH 3)</div>
-        <div id="t-c" class="tab tab-c" onclick="setMode('c')">CINEMATIC (CH 4)</div>
+        <div id="t-v" class="tab tab-v" onclick="setMode('v')">VIRUS (CH 12)</div>
+        <div id="t-c" class="tab tab-c" onclick="setMode('c')">CINEMATIC (CH 14)</div>
     </div>
 
     <div class="main-container">
@@ -88,17 +88,17 @@
                 <button class="midi-pad" onclick="sCC(27,20,this)">Crystal</button>
             </div>
             <div id="grid-c" class="grid">
-                <button class="midi-pad" style="grid-column: span 2; height: 120px;" onclick="sPC(0,this)">TEST (PC 1)</button>
+                <button class="midi-pad" style="grid-column: span 2; height: 100px;" onclick="sPC(0,this)">TEST (PC 1)</button>
             </div>
         </div>
     </div>
 
-    <div id="debug">> Click Refresh MIDI to start.</div>
+    <div id="debug">> System Ready. Connect USB.</div>
 
     <script>
         let midiOut = null;
         let outputs = [];
-        let activeChan = 2; // CH 3
+        let activeChan = 11; // 0-indexed (11 = CH 12)
 
         const log = (m) => { document.getElementById('debug').innerText = "> " + m; };
 
@@ -108,43 +108,32 @@
                 outputs = Array.from(access.outputs.values());
                 const sel = document.getElementById('midi-select');
                 sel.innerHTML = '';
-
-                if (outputs.length === 0) {
-                    log("No MIDI devices found. Check USB!");
-                    return;
-                }
-
+                if (outputs.length === 0) { log("No devices! Check USB."); return; }
                 outputs.forEach((out, i) => {
                     let opt = document.createElement('option');
-                    opt.value = i;
-                    opt.innerText = out.name;
+                    opt.value = i; opt.innerText = out.name;
                     sel.appendChild(opt);
                 });
-
-                // Attach Listener to Dropdown
                 sel.onchange = (e) => {
                     midiOut = outputs[e.target.value];
-                    log("Connected to: " + midiOut.name);
+                    log("Connected: " + midiOut.name);
                 };
-
-                // Auto-select first port
                 midiOut = outputs[0];
-                log("Auto-selected: " + midiOut.name);
-                
-            } catch (e) { log("MIDI Access Denied: " + e); }
+                log("Active: " + midiOut.name);
+            } catch (e) { log("Error: " + e); }
         }
 
         function setMode(mode) {
             const body = document.getElementById('app-body');
             if (mode === 'v') {
-                activeChan = 2; body.className = 'v-mode';
+                activeChan = 11; body.className = 'v-mode';
                 document.getElementById('grid-v').classList.add('active');
                 document.getElementById('grid-c').classList.remove('active');
                 document.getElementById('t-v').className = 'tab tab-v';
                 document.getElementById('t-c').className = 'tab';
                 setLabels("Pitch", "Mod W", "Rel", "Mod K");
             } else {
-                activeChan = 3; body.className = 'c-mode';
+                activeChan = 13; body.className = 'c-mode';
                 document.getElementById('grid-c').classList.add('active');
                 document.getElementById('grid-v').classList.remove('active');
                 document.getElementById('t-c').className = 'tab tab-c';
@@ -164,7 +153,7 @@
             document.getElementById(id).innerText = val;
             if (midiOut) {
                 midiOut.send([0xB0 + activeChan, cc, val]);
-            } else { log("Error: Select a Port first!"); }
+            }
         }
 
         function sCC(cc, val, btn) {
@@ -172,7 +161,7 @@
             btn.classList.add('selected');
             if (midiOut) {
                 midiOut.send([0xB0 + activeChan, cc, val]);
-                log("Sent CC 27: " + val);
+                log("CH" + (activeChan+1) + " CC 27: " + val);
             }
         }
 
@@ -181,7 +170,7 @@
             btn.classList.add('selected');
             if (midiOut) {
                 midiOut.send([0xC0 + activeChan, val]);
-                log("Sent PC: " + (val + 1));
+                log("CH" + (activeChan+1) + " PC: " + (val + 1));
             }
         }
 
