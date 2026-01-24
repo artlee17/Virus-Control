@@ -1,90 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus USB Control</title>
+    <title>Virus Wireless Control</title>
     <style>
-        body { background: #0d0d0d; color: white; font-family: sans-serif; margin: 0; padding: 15px; text-align: center; }
-        .fader-container { display: flex; justify-content: space-around; height: 250px; margin-bottom: 20px; }
-        .f-grp { display: flex; flex-direction: column; align-items: center; }
-        input[type=range] { appearance: slider-vertical; width: 45px; height: 100%; background: #333; }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        button { background: #252525; border: none; border-bottom: 4px solid #000; color: white; padding: 15px 5px; border-radius: 8px; font-weight: bold; height: 60px; }
-        button:active { background: #00f2ff; color: black; transform: translateY(2px); border: none; }
-        #debug { background: #000; color: #0f0; font-family: monospace; padding: 10px; margin-top: 20px; font-size: 12px; border: 1px solid #333; min-height: 20px; }
-        .status-bar { margin-bottom: 10px; font-size: 12px; color: #888; }
+        :root { --accent: #00f2ff; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #00f2ff; --panic: #ff3333; }
+        body { 
+            background: var(--bg); color: white; font-family: sans-serif; 
+            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+        
+        .setup-bar { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; }
+        .btn-header { border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; text-transform: uppercase; background: #444; color: #fff; }
+        
+        .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 120px); overflow: hidden; }
+        
+        .fader-section { display: flex; flex-direction: column; flex: 0.35; background: var(--panel); border-radius: 12px; padding: 10px; border: 1px solid #333; gap: 5px; }
+        .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; min-height: 0; }
+        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 24%; }
+        .fader-label { color: #888; font-size: 9px; text-transform: uppercase; text-align: center; font-weight: bold; }
+        
+        input[type=range][orient=vertical] { appearance: slider-vertical; width: 35px; height: 100%; background: #333; border-radius: 10px; outline: none; margin: 5px 0; }
+        
+        .macro-container { flex-shrink: 0; border-top: 1px solid #333; padding-top: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        input[id=macro-slider] { appearance: none; width: 90%; height: 10px; background: #333; border-radius: 5px; outline: none; }
+        input[id=macro-slider]::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 2px solid #000; }
+        
+        .val-indicator { color: var(--accent); font-family: monospace; font-size: 11px; font-weight: bold; background: #000; padding: 1px 5px; border-radius: 3px; }
+
+        .button-section { flex: 0.65; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; }
+        .midi-pad { 
+            background: #252525; border: none; border-radius: 8px; color: #bbb; 
+            font-size: 14px; font-weight: 700; height: 50px; cursor: pointer;
+            border-bottom: 4px solid #000; transition: all 0.1s ease;
+        }
+        .midi-pad.selected { background: var(--active-bg); color: #000; border-bottom: 0px; transform: translateY(3px); }
+
+        #debug-box { background: #000; color: #0f0; font-family: monospace; font-size: 11px; height: 40px; padding: 5px 20px; border-top: 1px solid #333; line-height: 40px; }
     </style>
 </head>
 <body>
 
-    <div class="status-bar" id="midi-status">Waiting for USB MIDI...</div>
-    <h3 style="color: #00f2ff; margin: 10px 0;">VIRUS USB CTRL</h3>
-
-    <div class="fader-container">
-        <div class="f-grp"><input type="range" orient="vertical" min="0" max="127" value="0" oninput="u(1,this.value,'v1')"><div id="v1">MW: 0</div></div>
-        <div class="f-grp"><input type="range" orient="vertical" min="0" max="127" value="0" oninput="u(7,this.value,'v2')"><div id="v2">REL: 0</div></div>
-        <div class="f-grp"><input type="range" orient="vertical" min="0" max="127" value="0" oninput="u(30,this.value,'v3')"><div id="v3">FLT: 0</div></div>
-        <div class="f-grp"><input type="range" orient="vertical" min="0" max="127" value="0" oninput="u(20,this.value,'v4')"><div id="v4">MST: 0</div></div>
+    <div class="setup-bar">
+        <div id="usb-status" style="font-weight: bold; font-size: 12px; color: #ff3333;">USB DISCONNECTED</div>
+        <button id="btn-wake" class="btn-header">Keep Screen On</button>
+        <button id="btn-panic" class="btn-header" style="background:var(--panic)">Panic</button>
     </div>
 
-    <div class="grid">
-        <button onclick="sendCC(27,0)">A1 FIRST</button>
-        <button onclick="sendCC(27,1)">B74 SHORT</button>
-        <button onclick="sendCC(27,2)">B74 LONG</button>
-        <button onclick="sendCC(27,3)">B3</button>
-        <button onclick="sendCC(27,4)">INDIGO</button>
-        <button onclick="sendCC(27,5)">VIRUS A</button>
+    <div class="main-container">
+        <div class="fader-section">
+            <div class="v-fader-row">
+                <div class="fader-group"><div class="fader-label">Pitch</div><input type="range" id="pitch" orient="vertical" min="0" max="127" value="64"><div class="val-indicator" id="v-pitch">64</div></div>
+                <div class="fader-group"><div class="fader-label">Mod W</div><input type="range" min="0" max="127" value="0" oninput="updateFader(1, this.value, 'v1')"><div class="val-indicator" id="v1">0</div></div>
+                <div class="fader-group"><div class="fader-label">Rel</div><input type="range" min="0" max="127" value="0" oninput="updateFader(7, this.value, 'v2')"><div class="val-indicator" id="v2">0</div></div>
+                <div class="fader-group"><div class="fader-label">Mod K</div><input type="range" min="0" max="127" value="0" oninput="updateFader(30, this.value, 'v3')"><div class="val-indicator" id="v3">0</div></div>
+            </div>
+            
+            <div class="macro-container">
+                <div class="fader-label">Master (CC 20)</div>
+                <input type="range" id="macro-slider" min="0" max="127" value="0" oninput="updateFader(20, this.value, 'v-macro')">
+                <div class="val-indicator" id="v-macro">0</div>
+            </div>
+        </div>
+        
+        <div class="button-section" id="pad-grid"></div>
     </div>
 
-    <div id="debug">> System Ready</div>
+    <div id="debug-box">> Ready</div>
 
     <script>
         let midiOut = null;
-        const log = (m) => document.getElementById('debug').innerText = "> " + m;
+        const logger = document.getElementById('debug-box');
+        const statusEl = document.getElementById('usb-status');
+        const log = (m) => logger.innerText = "> " + m;
 
-        // 1. Request MIDI Access
+        // Initialize Web MIDI
         if (navigator.requestMIDIAccess) {
-            navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
-        } else {
-            log("Web MIDI not supported in this browser.");
+            navigator.requestMIDIAccess().then(onSuccess, () => log("MIDI Blocked"));
         }
 
-        function onMIDISuccess(midi) {
+        function onSuccess(midi) {
             const outputs = Array.from(midi.outputs.values());
             if (outputs.length > 0) {
-                // Pick the first available MIDI output (your USB connection)
                 midiOut = outputs[0];
-                document.getElementById('midi-status').innerText = "CONNECTED: " + midiOut.name;
-                document.getElementById('midi-status').style.color = "#0f0";
-                log("USB MIDI Active");
-            } else {
-                document.getElementById('midi-status').innerText = "NO USB MIDI DETECTED";
-                log("Plug in USB and refresh.");
+                statusEl.innerText = "USB CONNECTED: " + midiOut.name;
+                statusEl.style.color = "var(--accent)";
+                log("Output Found: " + midiOut.name);
             }
         }
 
-        function onMIDIFailure() {
-            log("Could not access MIDI devices.");
-        }
-
-        // 2. Send MIDI Message
         function sendCC(cc, val) {
             if (midiOut) {
-                // 0xB2 = Control Change on Channel 3
-                // (0xB0 = Ch1, 0xB1 = Ch2, 0xB2 = Ch3)
+                // Status 0xB2 = Control Change, Channel 3
                 midiOut.send([0xB2, cc, val]);
-                log("Sent CC " + cc + " -> " + val);
-            } else {
-                log("Not connected to USB.");
+                log(`Sent CC ${cc}: ${val}`);
             }
         }
 
-        function u(cc, val, id) {
-            const labels = {v1:'MW', v2:'REL', v3:'FLT', v4:'MST'};
-            document.getElementById(id).innerText = labels[id] + ": " + val;
+        function updateFader(cc, val, displayId) {
+            document.getElementById(displayId).innerText = val;
             sendCC(cc, val);
         }
+
+        // Pitch Spring Logic
+        const p = document.getElementById('pitch');
+        p.oninput = () => {
+            document.getElementById('v-pitch').innerText = p.value;
+            if (midiOut) midiOut.send([0xE2, 0, p.value]); // Pitch Bend Ch 3
+        };
+        p.onmouseup = p.ontouchend = () => {
+            p.value = 64; 
+            document.getElementById('v-pitch').innerText = 64;
+            if (midiOut) midiOut.send([0xE2, 0, 64]);
+        };
+
+        // Presets
+        const presets = [
+            { n: "A1 First", v: 0 }, { n: "B74 Short", v: 1 }, { n: "B74 Long", v: 2 },
+            { n: "B3", v: 3 }, { n: "Indigo A84", v: 4 }, { n: "Virus A A18", v: 5 },
+            { n: "Piano", v: 6 }, { n: "Movie Strings", v: 7 }, { n: "Organ Interstellar", v: 8 },
+            { n: "Atmo Reality", v: 9 }, { n: "Pad Expanse", v: 10 }, { n: "Pad Outer Worlds", v: 11 }
+        ];
+
+        const grid = document.getElementById('pad-grid');
+        presets.forEach((item) => {
+            const btn = document.createElement('button');
+            btn.className = 'midi-pad';
+            btn.innerText = item.n;
+            btn.onclick = () => {
+                document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                sendCC(27, item.v);
+            };
+            grid.appendChild(btn);
+        });
+
+        document.getElementById('btn-panic').onclick = () => sendCC(123, 0);
+        document.getElementById('btn-wake').onclick = () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        };
     </script>
 </body>
 </html>
