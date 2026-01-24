@@ -3,11 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus CH12 / Cine CH14</title>
+    <title>Virus MIDI Pro</title>
     <style>
         :root { --red: #ff3333; --purple: #a044ff; --bg: #0d0d0d; --panel: #1a1a1a; }
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); color: white; font-family: sans-serif; }
         body { display: flex; flex-direction: column; }
+
+        /* Modal Pop-up Styling */
+        #permission-modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; 
+            align-items: center; justify-content: center; text-align: center; padding: 20px;
+        }
+        .modal-content { background: #222; padding: 30px; border-radius: 15px; border: 2px solid var(--red); max-width: 400px; }
+        .modal-btn { background: var(--red); color: white; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+
         .setup-bar { background: #222; padding: 5px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; height: 45px; }
         .btn-header { border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px; color: white; background: #444; }
         select { background: #333; color: white; border: 1px solid #555; padding: 6px; border-radius: 4px; flex-grow: 1; margin: 0 10px; font-size: 11px; }
@@ -39,9 +49,18 @@
 </head>
 <body id="app-body" class="v-mode">
 
+    <div id="permission-modal">
+        <div class="modal-content">
+            <h2 style="color:var(--red)">MIDI ACCESS BLOCKED</h2>
+            <p>Chrome needs permission to talk to your USB devices.</p>
+            <p style="font-size:12px; color:#aaa">Look for the <b>Piano icon</b> or <b>Lock icon</b> in your address bar and set MIDI to <b>"Allow"</b>.</p>
+            <button class="modal-btn" onclick="initMidi()">TRY AGAIN</button>
+        </div>
+    </div>
+
     <div class="setup-bar">
-        <button id="btn-init" class="btn-header" style="background:#ff3333">REFRESH MIDI</button>
-        <select id="midi-select"><option>Tap Refresh...</option></select>
+        <button id="btn-init" class="btn-header" style="background:#ff3333">INIT MIDI</button>
+        <select id="midi-select"><option>Tap Init...</option></select>
         <button id="btn-fs" class="btn-header">FS</button>
         <button id="btn-panic" class="btn-header" style="background:#900">PANIC</button>
     </div>
@@ -93,36 +112,53 @@
         </div>
     </div>
 
-    <div id="debug">> System Ready. Connect USB.</div>
+    <div id="debug">> System Ready. Click INIT.</div>
 
     <script>
         let midiOut = null;
         let outputs = [];
-        let activeChan = 11; // 0-indexed (11 = CH 12)
+        let activeChan = 11; // CH 12
 
         const log = (m) => { document.getElementById('debug').innerText = "> " + m; };
 
         async function initMidi() {
+            // Hide modal initially
+            document.getElementById('permission-modal').style.display = 'none';
+
             try {
-                const access = await navigator.requestMIDIAccess();
+                // Requesting sysex: true FORCES the permission prompt in Chrome
+                const access = await navigator.requestMIDIAccess({ sysex: true });
+                
                 outputs = Array.from(access.outputs.values());
                 const sel = document.getElementById('midi-select');
                 sel.innerHTML = '';
-                if (outputs.length === 0) { log("No devices! Check USB."); return; }
+
+                if (outputs.length === 0) {
+                    log("USB Connected, but no Ports found.");
+                    return;
+                }
+
                 outputs.forEach((out, i) => {
                     let opt = document.createElement('option');
                     opt.value = i; opt.innerText = out.name;
                     sel.appendChild(opt);
                 });
+
                 sel.onchange = (e) => {
                     midiOut = outputs[e.target.value];
-                    log("Connected: " + midiOut.name);
+                    log("Port Switched: " + midiOut.name);
                 };
+
                 midiOut = outputs[0];
-                log("Active: " + midiOut.name);
-            } catch (e) { log("Error: " + e); }
+                log("Ready: " + midiOut.name);
+                
+            } catch (e) { 
+                log("PERMISSION DENIED");
+                document.getElementById('permission-modal').style.display = 'flex';
+            }
         }
 
+        // Fader/Button Logic remains the same
         function setMode(mode) {
             const body = document.getElementById('app-body');
             if (mode === 'v') {
@@ -151,27 +187,19 @@
 
         function upd(cc, val, id) {
             document.getElementById(id).innerText = val;
-            if (midiOut) {
-                midiOut.send([0xB0 + activeChan, cc, val]);
-            }
+            if (midiOut) midiOut.send([0xB0 + activeChan, cc, val]);
         }
 
         function sCC(cc, val, btn) {
             document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
-            if (midiOut) {
-                midiOut.send([0xB0 + activeChan, cc, val]);
-                log("CH" + (activeChan+1) + " CC 27: " + val);
-            }
+            if (midiOut) midiOut.send([0xB0 + activeChan, cc, val]);
         }
 
         function sPC(val, btn) {
             document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
-            if (midiOut) {
-                midiOut.send([0xC0 + activeChan, val]);
-                log("CH" + (activeChan+1) + " PC: " + (val + 1));
-            }
+            if (midiOut) midiOut.send([0xC0 + activeChan, val]);
         }
 
         const p = document.getElementById('pitch');
