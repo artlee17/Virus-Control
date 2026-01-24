@@ -3,54 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus & Cinematic Pro</title>
+    <title>Virus Controller Master</title>
     <style>
         :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
         
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); color: white; font-family: sans-serif; }
         body { display: flex; flex-direction: column; }
         
-        /* Header */
-        .setup-bar { background: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 8px; flex-shrink: 0; }
-        .btn-header { border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; color: white; }
-        select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; flex-grow: 1; }
-
-        /* Tabs */
+        /* Header & Tabs */
+        .setup-bar { background: #222; padding: 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 5px; flex-shrink: 0; }
+        .btn-header { border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px; color: white; }
+        select { background: #333; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px; flex-grow: 1; font-size: 12px; }
         .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; }
-        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; color: #666; }
+        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-weight: bold; color: #666; font-size: 12px; }
         .tab.active { background: var(--panel); color: var(--accent); border-bottom: 3px solid var(--accent); }
         
-        /* Main Layout */
-        .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; overflow: hidden; }
+        /* Main Layout - Crucial for Scrolling */
+        .main-container { display: flex; flex: 1; padding: 10px; gap: 10px; overflow: hidden; height: calc(100% - 130px); }
         
         /* Fader Column */
-        .fader-section { width: 35%; background: var(--panel); border-radius: 12px; padding: 15px; border: 1px solid #333; display: flex; flex-direction: column; }
-        .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; margin-bottom: 10px; }
-        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
-        .fader-label { color: #888; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; text-align: center; min-height: 24px; }
+        .fader-section { width: 38%; background: var(--panel); border-radius: 10px; padding: 10px; border: 1px solid #333; display: flex; flex-direction: column; flex-shrink: 0; }
+        .v-fader-row { display: flex; flex: 1; justify-content: space-around; margin-bottom: 5px; }
+        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; }
+        .fader-label { color: #888; font-size: 9px; text-transform: uppercase; font-weight: bold; text-align: center; min-height: 20px; }
+        input[type=range][orient=vertical] { appearance: slider-vertical; width: 30px; height: 70%; background: #333; }
         
-        input[type=range][orient=vertical] { appearance: slider-vertical; width: 35px; height: 100%; background: #333; }
-        
-        .macro-container { border-top: 1px solid #444; padding-top: 10px; text-align: center; }
-        input[id=macro-slider] { width: 100%; margin: 10px 0; }
+        .macro-container { border-top: 1px solid #444; padding-top: 8px; text-align: center; flex-shrink: 0; }
+        .val-indicator { color: var(--accent); font-family: monospace; font-size: 11px; background: #000; padding: 2px 5px; border-radius: 4px; margin-top: 2px; }
 
-        /* Button Column */
-        .button-section { width: 65%; height: 100%; overflow-y: auto; display: none; }
-        .button-section.active { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding-bottom: 50px; }
+        /* SCROLLABLE BUTTON COLUMN */
+        .scroll-wrapper { width: 62%; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 5px; }
+        .button-section { display: none; }
+        .button-section.active { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding-bottom: 80px; }
         
-        .midi-pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 14px; font-weight: 700; min-height: 70px; cursor: pointer; border-bottom: 4px solid #000; }
+        .midi-pad { background: #252525; border: none; border-radius: 6px; color: #bbb; font-size: 11px; font-weight: 700; min-height: 55px; cursor: pointer; border-bottom: 3px solid #000; padding: 4px; }
         .midi-pad:active, .midi-pad.selected { background: var(--accent); color: white; border-bottom: 0px; transform: translateY(3px); }
 
-        .val-indicator { color: var(--accent); font-family: monospace; font-size: 12px; background: #000; padding: 2px 6px; border-radius: 4px; margin-top: 5px; }
-        #debug-box { background: #000; color: #ff3333; font-family: monospace; font-size: 11px; padding: 10px; border-top: 1px solid #333; }
+        #debug-box { background: #000; color: #ff3333; font-family: monospace; font-size: 10px; padding: 8px; border-top: 1px solid #333; flex-shrink: 0; }
     </style>
 </head>
 <body>
 
     <div class="setup-bar">
         <button id="btn-init" class="btn-header" style="background:var(--accent)">INIT USB</button>
-        <select id="midi-select"><option>Select Port...</option></select>
-        <button id="btn-fs" class="btn-header" style="background:#444">FULLSCREEN</button>
+        <select id="midi-select"><option>Scanning...</option></select>
+        <button id="btn-fs" class="btn-header" style="background:#444">FS</button>
         <button id="btn-panic" class="btn-header" style="background:#900">PANIC</button>
     </div>
 
@@ -69,38 +66,42 @@
             </div>
             <div class="macro-container">
                 <div class="fader-label">Master (CC 20)</div>
-                <input type="range" id="macro-slider" min="0" max="64" value="0" oninput="upd(20, this.value, 'v-m')">
+                <input type="range" id="macro-slider" style="width:100%" min="0" max="64" value="0" oninput="upd(20, this.value, 'v-m')">
                 <div class="val-indicator" id="v-m">0</div>
             </div>
         </div>
 
-        <div id="panel-virus" class="button-section active">
-            <button class="midi-pad" onclick="sendCC(27,0,this)">A1 First</button>
-            <button class="midi-pad" onclick="sendCC(27,1,this)">B74 Short</button>
-            <button class="midi-pad" onclick="sendCC(27,2,this)">B74 Long</button>
-            <button class="midi-pad" onclick="sendCC(27,3,this)">B3 Organ</button>
-            <button class="midi-pad" onclick="sendCC(27,4,this)">Indigo 84</button>
-            <button class="midi-pad" onclick="sendCC(27,5,this)">Virus A18</button>
-            <button class="midi-pad" onclick="sendCC(27,6,this)">Piano</button>
-            <button class="midi-pad" onclick="sendCC(27,7,this)">Movie Str</button>
-            <button class="midi-pad" onclick="sendCC(27,8,this)">Organ Int</button>
-            <button class="midi-pad" onclick="sendCC(27,9,this)">Atmo Real</button>
-            <button class="midi-pad" onclick="sendCC(27,10,this)">Pad Exp</button>
-            <button class="midi-pad" onclick="sendCC(27,11,this)">Outer W</button>
-            <button class="midi-pad" onclick="sendCC(27,12,this)">Stellar</button>
-            <button class="midi-pad" onclick="sendCC(27,13,this)">Steel</button>
-        </div>
+        <div class="scroll-wrapper">
+            <div id="panel-virus" class="button-section active">
+                <button class="midi-pad" onclick="sendCC(27,0,this)">A1 First</button>
+                <button class="midi-pad" onclick="sendCC(27,1,this)">B74 Short</button>
+                <button class="midi-pad" onclick="sendCC(27,2,this)">B74 Long</button>
+                <button class="midi-pad" onclick="sendCC(27,3,this)">B3 Organ</button>
+                <button class="midi-pad" onclick="sendCC(27,4,this)">Indigo 84</button>
+                <button class="midi-pad" onclick="sendCC(27,5,this)">Virus A18</button>
+                <button class="midi-pad" onclick="sendCC(27,6,this)">Piano</button>
+                <button class="midi-pad" onclick="sendCC(27,7,this)">Movie Str</button>
+                <button class="midi-pad" onclick="sendCC(27,8,this)">Organ Int</button>
+                <button class="midi-pad" onclick="sendCC(27,9,this)">Atmo Real</button>
+                <button class="midi-pad" onclick="sendCC(27,10,this)">Pad Exp</button>
+                <button class="midi-pad" onclick="sendCC(27,11,this)">Outer W</button>
+                <button class="midi-pad" onclick="sendCC(27,12,this)">Stellar</button>
+                <button class="midi-pad" onclick="sendCC(27,13,this)">Steel</button>
+                <button class="midi-pad" onclick="sendCC(27,14,this)">Custom 1</button>
+                <button class="midi-pad" onclick="sendCC(27,15,this)">Custom 2</button>
+            </div>
 
-        <div id="panel-cine" class="button-section">
-            <button class="midi-pad" style="grid-column: span 2; height: 150px;" onclick="sendPC(0,this)">TEST (PC 1)</button>
+            <div id="panel-cine" class="button-section">
+                <button class="midi-pad" style="grid-column: span 2; height: 100px;" onclick="sendPC(0,this)">TEST (PC 1)</button>
+            </div>
         </div>
     </div>
 
-    <div id="debug-box">> System Ready.</div>
+    <div id="debug-box">> System Ready. Connect USB.</div>
 
     <script>
         let midiOut = null;
-        let activeChan = 2; // Channel 3
+        let activeChan = 2;
 
         function log(m) { document.getElementById('debug-box').innerText = "> " + m; }
 
@@ -117,7 +118,7 @@
                 document.getElementById('l-2').innerText = "Rel";
                 document.getElementById('l-3').innerText = "Mod K";
             } else {
-                activeChan = 3; // Channel 4
+                activeChan = 3;
                 document.getElementById('panel-cine').classList.add('active');
                 document.getElementById('tab-c-btn').classList.add('active');
                 document.getElementById('l-p').innerText = "Expr";
@@ -125,7 +126,7 @@
                 document.getElementById('l-2').innerText = "Vib";
                 document.getElementById('l-3').innerText = "Dyn";
             }
-            log("Switched to " + mode.toUpperCase());
+            log("Mode: " + mode.toUpperCase());
         }
 
         async function init() {
@@ -140,8 +141,8 @@
                     sel.appendChild(opt);
                 });
                 midiOut = outputs[0];
-                log("Connected: " + (midiOut ? midiOut.name : "None"));
-            } catch (e) { log("Error: " + e); }
+                log("USB: " + (midiOut ? midiOut.name : "None"));
+            } catch (e) { log("USB Error: " + e); }
         }
 
         function upd(cc, val, id) {
