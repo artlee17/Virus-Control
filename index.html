@@ -3,71 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus Control v2</title>
+    <title>Virus Control v2.0</title>
+    
     <style>
-        body { background: #0d0d0d; color: white; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .setup-bar { background: #222; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .main { display: flex; flex: 1; gap: 10px; height: 70%; }
-        .faders { flex: 1; background: #1a1a1a; padding: 15px; border-radius: 10px; display: flex; justify-content: space-around; }
-        .f-grp { display: flex; flex-direction: column; align-items: center; height: 100%; }
-        input[type=range][orient=vertical] { appearance: slider-vertical; width: 40px; height: 80%; background: #333; }
-        .pads { flex: 1.5; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow-y: auto; }
-        .pad { background: #333; border: none; border-radius: 5px; color: white; font-weight: bold; height: 60px; border-bottom: 4px solid #000; }
-        .pad:active { background: #00f2ff; color: black; transform: translateY(2px); border: none; }
-        #debug { background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 13px; margin-top: 10px; border-radius: 5px; }
-    </style>
-</head>
-<body>
-
-<div class="setup-bar">
-    <div style="color:#00f2ff; font-weight:bold;">VIRUS NETWORK > PORT 0</div>
-    <div id="status" style="font-size: 10px;">Checking PC...</div>
-</div>
-
-<div class="main">
-    <div class="faders">
-        <div class="f-grp"><input type="range" orient="vertical" oninput="u(1,this.value,'v1')"><div id="v1">0</div></div>
-        <div class="f-grp"><input type="range" orient="vertical" oninput="u(7,this.value,'v2')"><div id="v2">0</div></div>
-        <div class="f-grp"><input type="range" orient="vertical" oninput="u(30,this.value,'v3')"><div id="v3">0</div></div>
-        <div class="f-grp"><input type="range" orient="vertical" oninput="u(20,this.value,'v4')"><div id="v4">0</div></div>
-    </div>
-    <div class="pads" id="pad-grid"></div>
-</div>
-
-<div id="debug">> System Ready</div>
-
-<script>
-    const PC_IP = "10.0.0.47";
-    const PORT_ID = 7; // Assuming 8th in list
-    const log = (m) => document.getElementById('debug').innerText = "> " + m;
-
-    async function send(cc, val) {
-        // v2.0 simple URL format
-        const url = `http://${PC_IP}:4000/sendmidi?midiport=${PORT_ID}&status=178&data1=${cc}&data2=${val}`;
-        
-        try {
-            fetch(url, { mode: 'no-cors' });
-            log("Sent CC " + cc + ": " + val);
-        } catch (e) {
-            log("Network Error - Check IP");
+        :root { --accent: #00f2ff; --bg: #0d0d0d; --panel: #1a1a1a; }
+        body { 
+            background: var(--bg); color: white; font-family: sans-serif; 
+            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
-    }
+        
+        .header { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; }
+        
+        .container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 100px); }
+        
+        /* Fader Styling */
+        .fader-section { flex: 0.35; background: var(--panel); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 10px; border: 1px solid #333; }
+        .fader-grid { display: flex; flex: 1; justify-content: space-around; }
+        .f-grp { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 23%; }
+        .label { color: #888; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        
+        input[type=range][orient=vertical] { appearance: slider-vertical; width: 35px; height: 100%; background: #333; cursor: pointer; }
+        
+        .master-box { border-top: 1px solid #333; padding-top: 10px; text-align: center; }
+        .h-slider { width: 90%; height: 12px; appearance: none; background: #333; border-radius: 6px; }
+        .h-slider::-webkit-slider-thumb { appearance: none; width: 25px; height: 25px; background: var(--accent); border-radius: 50%; border: 2px solid #000; }
 
-    function u(cc, val, id) {
-        document.getElementById(id).innerText = val;
-        send(cc, val);
-    }
-
-    const presets = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo", "Virus A", "Piano", "Strings", "Organ", "Reality", "Expanse", "Stellar"];
-    const grid = document.getElementById('pad-grid');
-    presets.forEach((n, i) => {
-        const b = document.createElement('button');
-        b.className = 'pad';
-        b.innerText = n;
-        b.onclick = () => send(27, i);
-        grid.appendChild(b);
-    });
-</script>
-
-</body>
-</html>
+        /* Pads Styling */
+        .
