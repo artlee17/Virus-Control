@@ -3,83 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus Control</title>
+    <title>Virus Control v2</title>
     <style>
-        :root { --accent: #00f2ff; --bg: #0d0d0d; --panel: #1a1a1a; }
-        body { 
-            background: var(--bg); color: white; font-family: sans-serif; 
-            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
-        }
-        .setup-bar { background: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; }
-        .main-container { display: flex; flex: 1; padding: 10px; gap: 10px; height: calc(100vh - 100px); }
-        
-        /* Faders */
-        .fader-section { flex: 0.4; background: var(--panel); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; }
-        .v-row { display: flex; flex: 1; justify-content: space-around; }
-        .f-grp { display: flex; flex-direction: column; align-items: center; width: 23%; }
-        input[type=range][orient=vertical] { appearance: slider-vertical; width: 30px; height: 100%; background: #333; }
-        
-        /* Pads */
-        .button-section { flex: 0.6; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; overflow-y: auto; }
-        .midi-pad { background: #252525; border: none; border-radius: 5px; color: #fff; height: 50px; font-weight: bold; border-bottom: 3px solid #000; }
-        .midi-pad:active { background: var(--accent); color: #000; transform: translateY(2px); border: none; }
-
-        #debug-box { background: #000; color: #0f0; font-family: monospace; font-size: 12px; height: 40px; padding: 0 15px; line-height: 40px; border-top: 1px solid #333; }
+        body { background: #0d0d0d; color: white; font-family: sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .setup-bar { background: #222; padding: 10px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .main { display: flex; flex: 1; gap: 10px; height: 70%; }
+        .faders { flex: 1; background: #1a1a1a; padding: 15px; border-radius: 10px; display: flex; justify-content: space-around; }
+        .f-grp { display: flex; flex-direction: column; align-items: center; height: 100%; }
+        input[type=range][orient=vertical] { appearance: slider-vertical; width: 40px; height: 80%; background: #333; }
+        .pads { flex: 1.5; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow-y: auto; }
+        .pad { background: #333; border: none; border-radius: 5px; color: white; font-weight: bold; height: 60px; border-bottom: 4px solid #000; }
+        .pad:active { background: #00f2ff; color: black; transform: translateY(2px); border: none; }
+        #debug { background: #000; color: #0f0; padding: 10px; font-family: monospace; font-size: 13px; margin-top: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="setup-bar">
-        <div style="color: var(--accent); font-weight: bold;">VIRUS CTRL > PORT 7</div>
-        <button onclick="location.reload()" style="background:#444; color:#fff; border:none; padding:5px 10px; border-radius:4px;">RELOAD</button>
-    </div>
+<div class="setup-bar">
+    <div style="color:#00f2ff; font-weight:bold;">VIRUS NETWORK > PORT 7</div>
+    <div id="status" style="font-size: 10px;">Checking PC...</div>
+</div>
 
-    <div class="main-container">
-        <div class="fader-section">
-            <div class="v-row">
-                <div class="f-grp"><input type="range" orient="vertical" oninput="u(1,this.value,'v1')"><div id="v1">0</div></div>
-                <div class="f-grp"><input type="range" orient="vertical" oninput="u(7,this.value,'v2')"><div id="v2">0</div></div>
-                <div class="f-grp"><input type="range" orient="vertical" oninput="u(30,this.value,'v3')"><div id="v3">0</div></div>
-                <div class="f-grp"><input type="range" orient="vertical" oninput="u(20,this.value,'v4')"><div id="v4">0</div></div>
-            </div>
-        </div>
+<div class="main">
+    <div class="faders">
+        <div class="f-grp"><input type="range" orient="vertical" oninput="u(1,this.value,'v1')"><div id="v1">0</div></div>
+        <div class="f-grp"><input type="range" orient="vertical" oninput="u(7,this.value,'v2')"><div id="v2">0</div></div>
+        <div class="f-grp"><input type="range" orient="vertical" oninput="u(30,this.value,'v3')"><div id="v3">0</div></div>
+        <div class="f-grp"><input type="range" orient="vertical" oninput="u(20,this.value,'v4')"><div id="v4">0</div></div>
+    </div>
+    <div class="pads" id="pad-grid"></div>
+</div>
+
+<div id="debug">> System Ready</div>
+
+<script>
+    const PC_IP = "10.0.0.47";
+    const PORT_ID = 7; // Assuming 8th in list
+    const log = (m) => document.getElementById('debug').innerText = "> " + m;
+
+    async function send(cc, val) {
+        // v2.0 simple URL format
+        const url = `http://${PC_IP}:4000/sendmidi?midiport=${PORT_ID}&status=178&data1=${cc}&data2=${val}`;
         
-        <div class="button-section" id="grid"></div>
-    </div>
-
-    <div id="debug-box">> Ready</div>
-
-    <script>
-        const IP = "10.0.0.47";
-        const PORT = "4000";
-        const log = (m) => document.getElementById('debug-box').innerText = "> " + m;
-
-        async function send(cc, val) {
-            try {
-                fetch(`http://${IP}:${PORT}/sendmidi`, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ midiport: 7, status: 178, data1: parseInt(cc), data2: parseInt(val) })
-                });
-                log("Fired CC " + cc + " val " + val);
-            } catch (e) { log("Network Error"); }
+        try {
+            fetch(url, { mode: 'no-cors' });
+            log("Sent CC " + cc + ": " + val);
+        } catch (e) {
+            log("Network Error - Check IP");
         }
+    }
 
-        function u(cc, val, id) {
-            document.getElementById(id).innerText = val;
-            send(cc, val);
-        }
+    function u(cc, val, id) {
+        document.getElementById(id).innerText = val;
+        send(cc, val);
+    }
 
-        const presets = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo", "Virus A", "Piano", "Strings", "Organ", "Reality", "Expanse", "Stellar"];
-        const grid = document.getElementById('grid');
-        presets.forEach((n, i) => {
-            const b = document.createElement('button');
-            b.className = 'midi-pad';
-            b.innerText = n;
-            b.onclick = () => send(27, i);
-            grid.appendChild(b);
-        });
-    </script>
+    const presets = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo", "Virus A", "Piano", "Strings", "Organ", "Reality", "Expanse", "Stellar"];
+    const grid = document.getElementById('pad-grid');
+    presets.forEach((n, i) => {
+        const b = document.createElement('button');
+        b.className = 'pad';
+        b.innerText = n;
+        b.onclick = () => send(27, i);
+        grid.appendChild(b);
+    });
+</script>
+
 </body>
 </html>
