@@ -3,62 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus MIDI Control</title>
-    
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#0d0d0d">
-
+    <title>Virus MIDI Controller</title>
     <style>
-        :root { --accent: #00f2ff; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #00f2ff; --panic: #ff3333; }
-        body { 
-            background: var(--bg); color: white; font-family: sans-serif; 
-            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        
+        .header { background: var(--accent); padding: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .btn { background: #000; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        select { background: #222; color: white; border: 1px solid #444; padding: 8px; border-radius: 4px; }
+
+        .main { display: flex; flex: 1; padding: 15px; gap: 20px; }
+        
+        .fader-panel { display: flex; gap: 15px; background: var(--panel); padding: 20px; border-radius: 15px; }
+        .fader-group { display: flex; flex-direction: column; align-items: center; }
+        .label { font-size: 10px; text-transform: uppercase; margin-bottom: 10px; color: #888; }
+        input[type=range][orient=vertical] { appearance: slider-vertical; width: 40px; height: 250px; background: #333; }
+        .val { margin-top: 10px; font-family: monospace; color: var(--accent); }
+
+        .grid-panel { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding-right: 10px; }
+        .pad { background: #252525; border: none; border-radius: 8px; color: #fff; height: 60px; font-weight: bold; border-bottom: 4px solid #000; }
+        .pad:active { background: var(--accent); transform: translateY(2px); border-bottom: 0; }
+
+        #debug { background: #000; color: #0f0; font-family: monospace; padding: 10px; font-size: 12px; height: 40px; border-top: 1px solid #333; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button id="initBtn" class="btn">INIT MIDI</button>
+        <select id="midiOutSelect"><option>Searching...</option></select>
+        <button id="fsBtn" class="btn">FULLSCREEN</button>
+        <button id="panicBtn" class="btn" style="background:#900">PANIC</button>
+    </div>
+
+    <div class="main">
+        <div class="fader-panel">
+            <div class="fader-group"><div class="label">Pitch</div><input type="range" id="pitch" orient="vertical" min="0" max="127" value="64"><div class="val" id="vp">64</div></div>
+            <div class="fader-group"><div class="label">Mod W</div><input type="range" id="f1" orient="vertical" min="0" max="127" value="0" oninput="upd(1, this.value, 'v1')"><div class="val" id="v1">0</div></div>
+            <div class="fader-group"><div class="label">Rel</div><input type="range" id="f2" orient="vertical" min="0" max="127" value="0" oninput="upd(7, this.value, 'v2')"><div class="val" id="v2">0</div></div>
+            <div class="fader-group"><div class="label">Mod K</div><input type="range" id="f3" orient="vertical" min="0" max="127" value="0" oninput="upd(30, this.value, 'v3')"><div class="val" id="v3">0</div></div>
+        </div>
+
+        <div class="grid-panel" id="padGrid">
+            </div>
+    </div>
+
+    <div id="debug">> System Ready.</div>
+
+    <script>
+        let midiOut = null;
+
+        const presets = [
+            "A1 First", "B74 Short", "B74 Long", "B3 Organ", "Indigo 84", "Virus A18",
+            "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W",
+            "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn",
+            "I Made This", "Space Brass", "Crystal"
+        ];
+
+        async function initMidi() {
+            try {
+                const access = await navigator.requestMIDIAccess();
+                const outputs = Array.from(access.outputs.values());
+                const sel = document.getElementById('midiOutSelect');
+                sel.innerHTML = '';
+                outputs.forEach((out, i) => {
+                    let opt = document.createElement('option');
+                    opt.value = i; opt.innerText = out.name;
+                    sel.appendChild(opt);
+                });
+                sel.onchange = (e) => { midiOut = outputs[e.target.value]; };
+                midiOut = outputs[0];
+                document.getElementById('debug').innerText = "> Active: " + midiOut.name;
+            } catch (e) { document.getElementById('debug').innerText = "> Error: " + e; }
         }
-        
-        .setup-bar { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 8px; flex-shrink: 0; }
-        select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; flex-grow: 1; max-width: 150px; font-size: 14px; }
-        
-        .btn-header { border: none; padding: 10px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 11px; }
-        #btn-init { background: var(--accent); color: #000; }
-        #btn-panic { background: var(--panic); color: #fff; }
-        #btn-fs { background: #444; color: #fff; }
-        #btn-wake { background: #f39c12; color: #000; }
-        
-        .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 120px); min-height: 0; }
-        
-        .fader-section { 
-            display: flex; flex-direction: column; flex: 0.35; 
-            background: var(--panel); border-radius: 12px; padding: 10px; 
-            border: 1px solid #333; gap: 5px; 
+
+        function upd(cc, val, id) {
+            document.getElementById(id).innerText = val;
+            if (midiOut) midiOut.send([0xB0, cc, val]);
         }
-        
-        .v-fader-row { 
-            display: flex; flex: 1; 
-            justify-content: space-around; align-items: stretch; 
-            padding-bottom: 5px;
-            min-height: 0;
-        }
-        
-        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 24%; }
-        .fader-label { color: #888; font-size: 9px; text-transform: uppercase; text-align: center; font-weight: bold; }
-        
-        input[type=range][orient=vertical] { 
-            appearance: slider-vertical; 
-            width: 35px; 
-            height: 100%; 
-            background: #333; 
-            border-radius: 10px; 
-            outline: none;
-            margin: 5px 0;
-        }
-        
-        .macro-container { 
-            flex-shrink: 0; 
-            border-top: 1px solid #333; padding-top: 8px; 
-            display: flex; flex-direction: column; align-items: center; gap: 4px; 
-        }
-        input[id=macro-slider] { appearance: none; width: 90%; height: 10px; background: #333; border-radius: 5px; outline: none; }
-        input[id=macro-slider]::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 2px solid #000; }
-        
-        .val-indicator { color: var(--accent); font-family: monospace; font-size: 11px; font-weight: bold; background: #000; padding: 1px 5px; border-radius: 3
+
+        const p = document.getElementById('pitch');
+        p.oninput = () => {
+            document.getElementById('vp').innerText = p.value;
+            if (midiOut) midiOut.send([0xE0, 0, p.value]);
+        };
+        p.onmouseup = p.ontouchend = () => {
+            p.value = 64; document.getElementById('vp').innerText = 64;
+            if (midiOut) midiOut.send([0xE0, 0, 64]);
+        };
+
+        const grid = document.getElementById('padGrid');
+        presets.forEach((name, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'pad';
+            btn.innerText = name;
+            btn.onclick = () => { if (midiOut) midiOut.send([0xB0, 27, i]); };
+            grid.appendChild(btn);
+        });
+
+        document.getElementById('initBtn').onclick = initMidi;
+        document.getElementById('panicBtn').onclick = () => { if (midiOut) midiOut.send([0xB0, 123, 0]); };
+        document.getElementById('fsBtn').onclick = () => { document.documentElement.requestFullscreen(); };
+    </script>
+</body>
+</html>
