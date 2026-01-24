@@ -27,4 +27,133 @@
         
         .macro-container { flex-shrink: 0; border-top: 1px solid #333; padding-top: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         input[id=macro-slider] { appearance: none; width: 90%; height: 10px; background: #333; border-radius: 5px; outline: none; }
-        input[id=macro-slider]::-webkit-slider-thumb { appearance: none; width: 22px; height: 2
+        input[id=macro-slider]::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 2px solid #000; }
+        
+        .val-indicator { color: var(--accent); font-family: monospace; font-size: 11px; font-weight: bold; background: #000; padding: 1px 5px; border-radius: 3px; }
+
+        /* Button Grid */
+        .button-section { flex: 0.65; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; }
+        .midi-pad { 
+            background: #252525; border: none; border-radius: 8px; color: #bbb; 
+            font-size: 14px; font-weight: 700; height: 50px; cursor: pointer;
+            border-bottom: 4px solid #000; transition: all 0.1s ease;
+        }
+        .midi-pad.selected { background: var(--active-bg); color: #000; border-bottom: 0px; transform: translateY(3px); }
+
+        #debug-box { background: #000; color: #0f0; font-family: monospace; font-size: 11px; height: 40px; padding: 5px 20px; border-top: 1px solid #333; line-height: 40px; }
+    </style>
+</head>
+<body>
+
+    <div class="setup-bar">
+        <div style="font-weight: bold; font-size: 12px; color: var(--accent);">VIRUS NETWORK CONTROL (PORT 7)</div>
+        <button id="btn-wake" class="btn-header">Keep Screen On</button>
+        <button id="btn-panic" class="btn-header" style="background:var(--panic)">Panic</button>
+    </div>
+
+    <div class="main-container">
+        <div class="fader-section">
+            <div class="v-fader-row">
+                <div class="fader-group"><div class="fader-label">Pitch</div><input type="range" id="pitch" orient="vertical" min="0" max="127" value="64"><div class="val-indicator" id="v-pitch">64</div></div>
+                <div class="fader-group"><div class="fader-label">Mod W</div><input type="range" min="0" max="127" value="0" oninput="updateFader(1, this.value, 'v1')"><div class="val-indicator" id="v1">0</div></div>
+                <div class="fader-group"><div class="fader-label">Rel</div><input type="range" min="0" max="127" value="0" oninput="updateFader(7, this.value, 'v2')"><div class="val-indicator" id="v2">0</div></div>
+                <div class="fader-group"><div class="fader-label">Mod K</div><input type="range" min="0" max="127" value="0" oninput="updateFader(30, this.value, 'v3')"><div class="val-indicator" id="v3">0</div></div>
+            </div>
+            
+            <div class="macro-container">
+                <div class="fader-label">Master (CC 20)</div>
+                <input type="range" id="macro-slider" min="0" max="64" value="0" oninput="updateFader(20, this.value, 'v-macro')">
+                <div class="val-indicator" id="v-macro">0</div>
+            </div>
+        </div>
+        
+        <div class="button-section" id="pad-grid"></div>
+    </div>
+
+    <div id="debug-box">> System Ready: Port 7</div>
+
+    <script>
+        const PC_IP = "10.0.0.47";
+        const PC_PORT = "4000";
+        const OUTPUT_ID = 7; // loopMIDI Port position
+        const logger = document.getElementById('debug-box');
+
+        function log(m) { logger.innerText = "> " + m; }
+
+        // --- THE ENGINE ---
+        async function sendNetworkMidi(cc, val) {
+            const url = `http://${PC_IP}:${PC_PORT}/sendmidi`;
+            const midiData = {
+                midiport: OUTPUT_ID,
+                status: 178, // Channel 3 Control Change
+                data1: parseInt(cc),
+                data2: parseInt(val)
+            };
+
+            try {
+                // Fetch with 'no-cors' for maximum speed and to bypass security blocks
+                fetch(url, {
+                    method: 'POST',
+                    body: JSON.stringify(midiData),
+                    headers: { 'Content-Type': 'application/json' },
+                    mode: 'no-cors' 
+                });
+                log(`Fired CC ${cc}: Value ${val}`);
+            } catch (e) {
+                log("Network Offline: Check Firewall");
+            }
+        }
+
+        // --- UI LOGIC ---
+        function updateFader(cc, val, displayId) {
+            document.getElementById(displayId).innerText = val;
+            sendNetworkMidi(cc, val);
+        }
+
+        // Pitch Spring Logic
+        const p = document.getElementById('pitch');
+        p.oninput = () => {
+            document.getElementById('v-pitch').innerText = p.value;
+            sendNetworkMidi(0, p.value); // Custom map for PB in relay if needed
+        };
+        p.onmouseup = p.ontouchend = () => {
+            p.value = 64; 
+            document.getElementById('v-pitch').innerText = 64;
+            sendNetworkMidi(0, 64);
+        };
+
+        // Populate Presets (CC 27)
+        const presets = [
+            { n: "A1 First", v: 0 }, { n: "B74 Short", v: 1 }, { n: "B74 Long", v: 2 },
+            { n: "B3", v: 3 }, { n: "Indigo A84", v: 4 }, { n: "Virus A A18", v: 5 },
+            { n: "Piano", v: 6 }, { n: "Movie Strings", v: 7 }, { n: "Organ Interstellar", v: 8 },
+            { n: "Atmo Reality", v: 9 }, { n: "Pad Expanse", v: 10 }, { n: "Pad Outer Worlds", v: 11 }
+        ];
+
+        const grid = document.getElementById('pad-grid');
+        presets.forEach((item) => {
+            const btn = document.createElement('button');
+            btn.className = 'midi-pad';
+            btn.innerText = item.n;
+            btn.onclick = () => {
+                document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                sendNetworkMidi(27, item.v);
+            };
+            grid.appendChild(btn);
+        });
+
+        // Panic Button
+        document.getElementById('btn-panic').onclick = () => {
+            sendNetworkMidi(123, 0); // All Notes Off
+            log("PANIC SENT");
+        };
+
+        // Full Screen Toggle
+        document.getElementById('btn-wake').onclick = () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        };
+    </script>
+</body>
+</html>
