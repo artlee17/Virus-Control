@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Virus Red Multi</title>
+    <title>Viper & Cinematic</title>
     <style>
         :root { --accent: #ff0000; --bg: #0d0d0d; --panel: #1a1a1a; --header-h: 60px; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -13,7 +13,6 @@
             margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
         
-        /* Fixed Header */
         .tab-bar { 
             display: flex; background: #222; border-bottom: 2px solid #444; 
             height: var(--header-h); flex-shrink: 0; z-index: 100;
@@ -25,15 +24,10 @@
         }
         .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: #111; }
 
-        /* Main Scroll Area */
-        .content-area { 
-            flex: 1; overflow-y: auto; padding: 10px; padding-bottom: 60px;
-        }
-
+        .content-area { flex: 1; overflow-y: auto; padding: 10px; padding-bottom: 60px; }
         .main-container { display: none; flex-direction: column; gap: 12px; }
         .main-container.active { display: flex; }
         
-        /* Fader Styling */
         .fader-section { background: var(--panel); border-radius: 12px; padding: 12px; border: 1px solid #333; }
         .v-fader-row { display: flex; justify-content: space-around; height: 150px; margin-bottom: 12px; }
         .f-grp { display: flex; flex-direction: column; align-items: center; width: 22%; }
@@ -47,7 +41,6 @@
         
         .val { color: var(--accent); font-family: monospace; font-size: 12px; }
 
-        /* Button Grid */
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .pad { 
             background: #252525; border: none; border-radius: 6px; color: #eee; 
@@ -64,105 +57,31 @@
 <body>
 
     <div class="tab-bar">
-        <div id="tab-v" class="tab active" onclick="switchTab('virus')">Virus</div>
-        <div id="tab-c" class="tab" onclick="switchTab('cinematic')">Cinematic</div>
+        <div id="tab-v" class="tab active" onclick="switchTab('viper')">Viper (14)</div>
+        <div id="tab-c" class="tab" onclick="switchTab('cinematic')">Cine (12)</div>
     </div>
 
     <div class="content-area">
-        <div id="virus" class="main-container active">
+        <div id="viper" class="main-container active">
             <div class="fader-section">
                 <div class="v-fader-row">
                     <div class="f-grp"><div class="label">Pitch</div><input type="range" id="p1" class="v-sld" min="0" max="127" value="64"><div class="val" id="vp">64</div></div>
-                    <div class="f-grp"><div class="label">Mod</div><input type="range" class="v-sld" oninput="u(3,1,this.value,'v1')"><div class="val" id="v1">0</div></div>
-                    <div class="f-grp"><div class="label">Rel</div><input type="range" class="v-sld" oninput="u(3,7,this.value,'v2')"><div class="val" id="v2">0</div></div>
-                    <div class="f-grp"><div class="label">Cut</div><input type="range" class="v-sld" oninput="u(3,30,this.value,'v3')"><div class="val" id="v3">0</div></div>
+                    <div class="f-grp"><div class="label">Mod</div><input type="range" class="v-sld" oninput="u(14,1,this.value,'v1')"><div class="val" id="v1">0</div></div>
+                    <div class="f-grp"><div class="label">Rel</div><input type="range" class="v-sld" oninput="u(14,7,this.value,'v2')"><div class="val" id="v2">0</div></div>
+                    <div class="f-grp"><div class="label">Cut</div><input type="range" class="v-sld" oninput="u(14,30,this.value,'v3')"><div class="val" id="v3">0</div></div>
                 </div>
                 <div class="macro-container">
-                    <div class="label">Master (CC 20)</div>
-                    <input type="range" class="h-sld" oninput="u(3,20,this.value,'v4')">
+                    <div class="label">Viper Master (CC 20)</div>
+                    <input type="range" class="h-sld" oninput="u(14,20,this.value,'v4')">
                     <div class="val" id="v4">0</div>
                 </div>
             </div>
             <div class="grid">
-                <button class="pad" onclick="u(3,27,0,'debug')">A1</button>
-                <button class="pad" onclick="u(3,27,1,'debug')">B74S</button>
-                <button class="pad" onclick="u(3,27,2,'debug')">B74L</button>
-                <button class="pad" onclick="u(3,27,3,'debug')">B3 PAD</button>
-                <button class="pad" onclick="u(3,27,4,'debug')">INDIGO</button>
-                <button class="pad" onclick="u(3,27,5,'debug')">VIRUS A</button>
-                <button class="pad" onclick="u(3,27,6,'debug')">PIANO</button>
-                <button class="pad" onclick="u(3,27,7,'debug')">STRINGS</button>
-                <button class="pad" onclick="u(3,27,8,'debug')">ORGAN</button>
+                <button class="pad" onclick="u(14,27,0,'debug')">A1</button>
+                <button class="pad" onclick="u(14,27,1,'debug')">B74S</button>
+                <button class="pad" onclick="u(14,27,2,'debug')">B74L</button>
+                <button class="pad" onclick="u(14,27,3,'debug')">B3 PAD</button>
+                <button class="pad" onclick="u(14,27,4,'debug')">INDIGO</button>
+                <button class="pad" onclick="u(14,27,5,'debug')">VIPER A</button>
             </div>
         </div>
-
-        <div id="cinematic" class="main-container">
-            <div class="fader-section">
-                <div class="v-fader-row">
-                    <div class="f-grp"><div class="label">Expr</div><input type="range" class="v-sld" oninput="u(4,11,this.value,'c1')"><div class="val" id="c1">0</div></div>
-                    <div class="f-grp"><div class="label">Dyn</div><input type="range" class="v-sld" oninput="u(4,1,this.value,'c2')"><div class="val" id="c2">0</div></div>
-                    <div class="f-grp"><div class="label">Verb</div><input type="range" class="v-sld" oninput="u(4,91,this.value,'c3')"><div class="val" id="c3">0</div></div>
-                    <div class="f-grp"><div class="label">Air</div><input type="range" class="v-sld" oninput="u(4,72,this.value,'c4')"><div class="val" id="c4">0</div></div>
-                </div>
-                <div class="macro-container">
-                    <div class="label">Swell (CC 21)</div>
-                    <input type="range" class="h-sld" oninput="u(4,21,this.value,'c5')">
-                    <div class="val" id="c5">0</div>
-                </div>
-            </div>
-            <div class="grid">
-                <button class="pad" onclick="sendPC(4, 1)">PC 1: TEST</button>
-                <button class="pad" onclick="u(4,27,0,'debug')">CINE 1</button>
-                <button class="pad" onclick="u(4,27,1,'debug')">CINE 2</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="debug">> System Ready</div>
-
-    <script>
-        let midiOut = null;
-        const log = (m) => document.getElementById('debug').innerText = "> " + m;
-
-        navigator.requestMIDIAccess().then(midi => {
-            const outputs = Array.from(midi.outputs.values());
-            if (outputs.length > 0) midiOut = outputs[0];
-        });
-
-        function switchTab(target) {
-            // Hide all containers
-            document.getElementById('virus').classList.remove('active');
-            document.getElementById('cinematic').classList.remove('active');
-            // Deactivate all tabs
-            document.getElementById('tab-v').classList.remove('active');
-            document.getElementById('tab-c').classList.remove('active');
-            
-            // Activate selection
-            document.getElementById(target).classList.add('active');
-            document.getElementById('tab-' + target.charAt(0)).classList.add('active');
-            log("Switched to " + target.toUpperCase());
-        }
-
-        function u(ch, cc, val, id) {
-            if(document.getElementById(id)) document.getElementById(id).innerText = val;
-            if (midiOut) midiOut.send([0xAF + ch, cc, val]);
-        }
-
-        function sendPC(ch, pc) {
-            if (midiOut) midiOut.send([0xCF + ch, pc - 1]);
-            log("PC " + pc + " Sent (Ch " + ch + ")");
-        }
-
-        const p = document.getElementById('p1');
-        p.oninput = () => { 
-            document.getElementById('vp').innerText = p.value; 
-            if(midiOut) midiOut.send([0xE2, 0, p.value]); 
-        };
-        p.onmouseup = p.ontouchend = () => { 
-            p.value = 64; 
-            document.getElementById('vp').innerText = 64; 
-            if(midiOut) midiOut.send([0xE2, 0, 64]); 
-        };
-    </script>
-</body>
-</html>
