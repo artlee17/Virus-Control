@@ -3,88 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus MIDI Control</title>
+    <title>Virus Wireless Control</title>
     
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0d0d0d">
-    <link rel="manifest" href="data:application/manifest+json,{'name':'Virus MIDI','short_name':'Virus','start_url':'.','display':'standalone','background_color':'#0d0d0d','theme_color':'#0d0d0d','orientation':'landscape'}">
+    <link rel="manifest" href="data:application/manifest+json,{'name':'Virus Wireless','short_name':'Virus','start_url':'.','display':'standalone','background_color':'#0d0d0d','theme_color':'#0d0d0d','orientation':'landscape'}">
 
     <style>
         :root { --accent: #00f2ff; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #00f2ff; --panic: #ff3333; }
-        body { 
-            background: var(--bg); color: white; font-family: 'Inter', sans-serif; 
-            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-        }
-        
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
         .setup-bar { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 8px; flex-shrink: 0; }
         select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; flex-grow: 1; max-width: 150px; font-size: 14px; }
-        
         .btn-header { border: none; padding: 10px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 11px; }
         #btn-init { background: var(--accent); color: #000; }
         #btn-panic { background: var(--panic); color: #fff; }
         #btn-fs { background: #444; color: #fff; }
         #btn-wake { background: #f39c12; color: #000; }
-        
         .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 120px); min-height: 0; }
-        
-        /* Left Panel - Optimized for Height */
-        .fader-section { 
-            display: flex; flex-direction: column; flex: 0.35; 
-            background: var(--panel); border-radius: 12px; padding: 10px; 
-            border: 1px solid #333; gap: 5px; 
-        }
-        
-        .v-fader-row { 
-            display: flex; flex: 1; 
-            justify-content: space-around; align-items: stretch; 
-            padding-bottom: 5px;
-            min-height: 0;
-        }
-        
+        .fader-section { display: flex; flex-direction: column; flex: 0.35; background: var(--panel); border-radius: 12px; padding: 10px; border: 1px solid #333; gap: 5px; }
+        .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; padding-bottom: 5px; min-height: 0; }
         .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 24%; }
         .fader-label { color: #888; font-size: 9px; text-transform: uppercase; text-align: center; font-weight: bold; }
-        
-        input[type=range][orient=vertical] { 
-            appearance: slider-vertical; 
-            width: 35px; 
-            height: 100%; 
-            background: #333; 
-            border-radius: 10px; 
-            outline: none;
-            margin: 5px 0;
-        }
-        
-        /* Master Slider at bottom */
-        .macro-container { 
-            flex-shrink: 0; 
-            border-top: 1px solid #333; padding-top: 8px; 
-            display: flex; flex-direction: column; align-items: center; gap: 4px; 
-        }
+        input[type=range][orient=vertical] { appearance: slider-vertical; width: 35px; height: 100%; background: #333; border-radius: 10px; outline: none; margin: 5px 0; }
+        .macro-container { flex-shrink: 0; border-top: 1px solid #333; padding-top: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         input[id=macro-slider] { appearance: none; width: 90%; height: 10px; background: #333; border-radius: 5px; outline: none; }
         input[id=macro-slider]::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 2px solid #000; }
-        
         .val-indicator { color: var(--accent); font-family: monospace; font-size: 11px; font-weight: bold; background: #000; padding: 1px 5px; border-radius: 3px; }
-
-        /* Right Panel */
         .button-section { flex: 0.65; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; padding-right: 5px; }
-        .midi-pad { 
-            background: #252525; border: none; border-radius: 8px; color: #bbb; 
-            font-size: 15px; font-weight: 700; height: 55px; cursor: pointer;
-            border-bottom: 4px solid #000; transition: all 0.1s ease;
-            display: flex; align-items: center; justify-content: center; text-align: center;
-        }
+        .midi-pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 15px; font-weight: 700; height: 55px; cursor: pointer; border-bottom: 4px solid #000; transition: all 0.1s ease; display: flex; align-items: center; justify-content: center; text-align: center; }
         .midi-pad.selected { background: var(--active-bg); color: #000; border-bottom: 0px; transform: translateY(3px); }
-
         #debug-box { background: #000; color: #0f0; font-family: monospace; font-size: 11px; height: 40px; padding: 5px 20px; overflow-y: hidden; border-top: 1px solid #333; flex-shrink: 0; }
     </style>
 </head>
 <body>
 
     <div class="setup-bar">
-        <button id="btn-init" class="btn-header">INIT</button>
-        <select id="midi-select"><option>Port...</option></select>
+        <button id="btn-init" class="btn-header">INIT WIRELESS</button>
+        <select id="midi-select"><option>Scan Network...</option></select>
         <button id="btn-wake" class="btn-header">WAKE</button>
         <button id="btn-fs" class="btn-header">FULL</button>
         <button id="btn-panic" class="btn-header">PANIC</button>
@@ -98,43 +54,23 @@
                 <div class="fader-group"><div class="fader-label">Rel</div><input type="range" id="f2" orient="vertical" min="0" max="127" value="0" oninput="updateFader(7, this.value, 'v2')"><div class="val-indicator" id="v2">0</div></div>
                 <div class="fader-group"><div class="fader-label">Mod K</div><input type="range" id="f3" orient="vertical" min="0" max="127" value="0" oninput="updateFader(30, this.value, 'v3')"><div class="val-indicator" id="v3">0</div></div>
             </div>
-            
             <div class="macro-container">
                 <div class="fader-label">Master (CC 20: 0-64)</div>
                 <input type="range" id="macro-slider" min="0" max="64" value="0" oninput="updateFader(20, this.value, 'v-macro')">
                 <div class="val-indicator" id="v-macro">0</div>
             </div>
         </div>
-        
         <div class="button-section" id="pad-grid"></div>
     </div>
 
-    <div id="debug-box">> System Ready.</div>
+    <div id="debug-box">> Wireless Ready. Use rtpMIDI on PC.</div>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            const swCode = `self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request)));`;
-            const blob = new Blob([swCode], {type: 'text/javascript'});
-            const url = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(url).catch(() => {});
-        }
-
         let wakeLock = null;
         async function toggleWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    document.getElementById('btn-wake').style.background = "#2ecc71";
-                    log("WAKE LOCK: Active.");
-                }
-            } catch (err) { log("WAKE LOCK Error"); }
+            try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); document.getElementById('btn-wake').style.background = "#2ecc71"; } } catch (err) {}
         }
-
-        setInterval(async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible') {
-                wakeLock = await navigator.wakeLock.request('screen');
-            }
-        }, 30000);
+        setInterval(async () => { if (wakeLock !== null && document.visibilityState === 'visible') wakeLock = await navigator.wakeLock.request('screen'); }, 30000);
 
         let midiOut = null;
         let outputs = [];
@@ -164,11 +100,12 @@
                     outputs.forEach((out, i) => {
                         const opt = document.createElement('option');
                         opt.value = i; opt.innerText = out.name;
-                        if (out.name.toLowerCase().includes('usb')) opt.selected = true;
+                        // Look for Network/rtpMIDI ports
+                        if (out.name.toLowerCase().includes('network') || out.name.toLowerCase().includes('rtp')) opt.selected = true;
                         selector.appendChild(opt);
                     });
                     midiOut = outputs[selector.selectedIndex] || outputs[0];
-                    if(midiOut) log("Active: " + midiOut.name);
+                    if(midiOut) log("Wireless Target: " + midiOut.name);
                 };
                 access.onstatechange = updatePorts;
                 updatePorts();
@@ -177,28 +114,19 @@
 
         document.getElementById('btn-init').onclick = initMidi;
         document.getElementById('btn-wake').onclick = toggleWakeLock;
-        document.getElementById('btn-fs').onclick = () => {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else document.exitFullscreen();
-        };
+        document.getElementById('btn-fs').onclick = () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); };
 
         document.getElementById('btn-panic').onclick = () => {
             if (!midiOut) return;
             midiOut.send([CHAN3_CC, 123, 0]);
             const resets = [{id:'f1', cc:1, disp:'v1'}, {id:'f2', cc:7, disp:'v2'}, {id:'f3', cc:30, disp:'v3'}];
-            resets.forEach(item => { 
-                document.getElementById(item.id).value = 0; 
-                updateFader(item.cc, 0, item.disp); 
-            });
-            // Visual reset only for Master CC 20
+            resets.forEach(item => { document.getElementById(item.id).value = 0; updateFader(item.cc, 0, item.disp); });
             document.getElementById('macro-slider').value = 0;
             document.getElementById('v-macro').innerText = "0 (held)";
-            
-            document.getElementById('pitch').value = 64; 
-            document.getElementById('v-pitch').innerText = 64;
+            document.getElementById('pitch').value = 64; document.getElementById('v-pitch').innerText = 64;
             midiOut.send([0xE2, 0, 64]);
             document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
-            log("PANIC: Resets Done. Master Held.");
+            log("PANIC: Wireless Reset Sent.");
         };
 
         function updateFader(cc, val, displayId) {
@@ -207,14 +135,8 @@
         }
 
         const p = document.getElementById('pitch');
-        p.oninput = () => {
-            document.getElementById('v-pitch').innerText = p.value;
-            if (midiOut) midiOut.send([0xE2, 0, p.value]);
-        };
-        p.onmouseup = p.ontouchend = () => {
-            p.value = 64; document.getElementById('v-pitch').innerText = 64;
-            if (midiOut) midiOut.send([0xE2, 0, 64]);
-        };
+        p.oninput = () => { document.getElementById('v-pitch').innerText = p.value; if (midiOut) midiOut.send([0xE2, 0, p.value]); };
+        p.onmouseup = p.ontouchend = () => { p.value = 64; document.getElementById('v-pitch').innerText = 64; if (midiOut) midiOut.send([0xE2, 0, 64]); };
 
         const grid = document.getElementById('pad-grid');
         presets.forEach((item) => {
