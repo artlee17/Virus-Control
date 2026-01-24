@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus Wireless Control</title>
+    <title>Virus Red USB</title>
     <style>
-        :root { --accent: #00f2ff; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #00f2ff; --panic: #ff3333; }
+        :root { --accent: #ff0000; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #ff0000; --panic: #990000; }
         body { 
             background: var(--bg); color: white; font-family: sans-serif; 
             margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
@@ -16,49 +16,62 @@
         
         .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 120px); overflow: hidden; }
         
+        /* Sidebar for Vertical Faders */
         .fader-section { display: flex; flex-direction: column; flex: 0.35; background: var(--panel); border-radius: 12px; padding: 10px; border: 1px solid #333; gap: 5px; }
         .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; min-height: 0; }
-        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 24%; }
-        .fader-label { color: #888; font-size: 9px; text-transform: uppercase; text-align: center; font-weight: bold; }
         
-        input[type=range][orient=vertical] { appearance: slider-vertical; width: 35px; height: 100%; background: #333; border-radius: 10px; outline: none; margin: 5px 0; }
+        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 22%; }
+        .fader-label { color: #888; font-size: 9px; text-transform: uppercase; text-align: center; font-weight: bold; margin-bottom: 5px; }
         
-        .macro-container { flex-shrink: 0; border-top: 1px solid #333; padding-top: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        input[id=macro-slider] { appearance: none; width: 90%; height: 10px; background: #333; border-radius: 5px; outline: none; }
-        input[id=macro-slider]::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 2px solid #000; }
+        /* Force Vertical Orientation */
+        input[type=range].vertical { 
+            writing-mode: bt-lr; /* IE */
+            appearance: slider-vertical; 
+            width: 35px; 
+            height: 100%; 
+            background: #333; 
+            border-radius: 10px; 
+            outline: none; 
+        }
         
-        .val-indicator { color: var(--accent); font-family: monospace; font-size: 11px; font-weight: bold; background: #000; padding: 1px 5px; border-radius: 3px; }
+        /* Master Horizontal Fader */
+        .macro-container { flex-shrink: 0; border-top: 1px solid #333; padding-top: 15px; padding-bottom: 5px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        input[id=macro-slider] { appearance: none; width: 90%; height: 12px; background: #333; border-radius: 6px; outline: none; }
+        input[id=macro-slider]::-webkit-slider-thumb { appearance: none; width: 26px; height: 26px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 2px solid #000; }
+        
+        .val-indicator { color: var(--accent); font-family: monospace; font-size: 11px; font-weight: bold; background: #000; padding: 2px 6px; border-radius: 3px; border: 1px solid #333; }
 
+        /* Button Grid */
         .button-section { flex: 0.65; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; }
         .midi-pad { 
             background: #252525; border: none; border-radius: 8px; color: #bbb; 
-            font-size: 14px; font-weight: 700; height: 50px; cursor: pointer;
+            font-size: 13px; font-weight: 700; height: 55px; cursor: pointer;
             border-bottom: 4px solid #000; transition: all 0.1s ease;
         }
-        .midi-pad.selected { background: var(--active-bg); color: #000; border-bottom: 0px; transform: translateY(3px); }
+        .midi-pad.selected { background: var(--active-bg); color: #fff; border-bottom: 0px; transform: translateY(3px); }
 
-        #debug-box { background: #000; color: #0f0; font-family: monospace; font-size: 11px; height: 40px; padding: 5px 20px; border-top: 1px solid #333; line-height: 40px; }
+        #debug-box { background: #000; color: #ff0000; font-family: monospace; font-size: 11px; height: 40px; padding: 5px 20px; border-top: 1px solid #333; line-height: 40px; }
     </style>
 </head>
 <body>
 
     <div class="setup-bar">
-        <div id="usb-status" style="font-weight: bold; font-size: 12px; color: #ff3333;">USB DISCONNECTED</div>
-        <button id="btn-wake" class="btn-header">Keep Screen On</button>
+        <div id="usb-status" style="font-weight: bold; font-size: 12px; color: var(--accent);">USB: CHECKING...</div>
+        <button id="btn-wake" class="btn-header">Wake</button>
         <button id="btn-panic" class="btn-header" style="background:var(--panic)">Panic</button>
     </div>
 
     <div class="main-container">
         <div class="fader-section">
             <div class="v-fader-row">
-                <div class="fader-group"><div class="fader-label">Pitch</div><input type="range" id="pitch" orient="vertical" min="0" max="127" value="64"><div class="val-indicator" id="v-pitch">64</div></div>
-                <div class="fader-group"><div class="fader-label">Mod W</div><input type="range" min="0" max="127" value="0" oninput="updateFader(1, this.value, 'v1')"><div class="val-indicator" id="v1">0</div></div>
-                <div class="fader-group"><div class="fader-label">Rel</div><input type="range" min="0" max="127" value="0" oninput="updateFader(7, this.value, 'v2')"><div class="val-indicator" id="v2">0</div></div>
-                <div class="fader-group"><div class="fader-label">Mod K</div><input type="range" min="0" max="127" value="0" oninput="updateFader(30, this.value, 'v3')"><div class="val-indicator" id="v3">0</div></div>
+                <div class="fader-group"><div class="fader-label">Pitch</div><input type="range" id="pitch" class="vertical" orient="vertical" min="0" max="127" value="64"><div class="val-indicator" id="v-pitch">64</div></div>
+                <div class="fader-group"><div class="fader-label">Mod W</div><input type="range" class="vertical" orient="vertical" min="0" max="127" value="0" oninput="updateFader(1, this.value, 'v1')"><div class="val-indicator" id="v1">0</div></div>
+                <div class="fader-group"><div class="fader-label">Rel</div><input type="range" class="vertical" orient="vertical" min="0" max="127" value="0" oninput="updateFader(7, this.value, 'v2')"><div class="val-indicator" id="v2">0</div></div>
+                <div class="fader-group"><div class="fader-label">Mod K</div><input type="range" class="vertical" orient="vertical" min="0" max="127" value="0" oninput="updateFader(30, this.value, 'v3')"><div class="val-indicator" id="v3">0</div></div>
             </div>
             
             <div class="macro-container">
-                <div class="fader-label">Master (CC 20)</div>
+                <div class="fader-label">Master Macro (CC 20)</div>
                 <input type="range" id="macro-slider" min="0" max="127" value="0" oninput="updateFader(20, this.value, 'v-macro')">
                 <div class="val-indicator" id="v-macro">0</div>
             </div>
@@ -67,7 +80,7 @@
         <div class="button-section" id="pad-grid"></div>
     </div>
 
-    <div id="debug-box">> Ready</div>
+    <div id="debug-box">> Red System Ready</div>
 
     <script>
         let midiOut = null;
@@ -75,7 +88,6 @@
         const statusEl = document.getElementById('usb-status');
         const log = (m) => logger.innerText = "> " + m;
 
-        // Initialize Web MIDI
         if (navigator.requestMIDIAccess) {
             navigator.requestMIDIAccess().then(onSuccess, () => log("MIDI Blocked"));
         }
@@ -84,17 +96,15 @@
             const outputs = Array.from(midi.outputs.values());
             if (outputs.length > 0) {
                 midiOut = outputs[0];
-                statusEl.innerText = "USB CONNECTED: " + midiOut.name;
-                statusEl.style.color = "var(--accent)";
-                log("Output Found: " + midiOut.name);
+                statusEl.innerText = "USB: " + midiOut.name.toUpperCase();
+                log("Connected to " + midiOut.name);
             }
         }
 
         function sendCC(cc, val) {
             if (midiOut) {
-                // Status 0xB2 = Control Change, Channel 3
-                midiOut.send([0xB2, cc, val]);
-                log(`Sent CC ${cc}: ${val}`);
+                midiOut.send([0xB2, cc, val]); // Ch 3
+                log(`CC ${cc} -> ${val}`);
             }
         }
 
@@ -103,11 +113,11 @@
             sendCC(cc, val);
         }
 
-        // Pitch Spring Logic
+        // Pitch Spring
         const p = document.getElementById('pitch');
         p.oninput = () => {
             document.getElementById('v-pitch').innerText = p.value;
-            if (midiOut) midiOut.send([0xE2, 0, p.value]); // Pitch Bend Ch 3
+            if (midiOut) midiOut.send([0xE2, 0, p.value]);
         };
         p.onmouseup = p.ontouchend = () => {
             p.value = 64; 
@@ -115,12 +125,11 @@
             if (midiOut) midiOut.send([0xE2, 0, 64]);
         };
 
-        // Presets
         const presets = [
             { n: "A1 First", v: 0 }, { n: "B74 Short", v: 1 }, { n: "B74 Long", v: 2 },
-            { n: "B3", v: 3 }, { n: "Indigo A84", v: 4 }, { n: "Virus A A18", v: 5 },
-            { n: "Piano", v: 6 }, { n: "Movie Strings", v: 7 }, { n: "Organ Interstellar", v: 8 },
-            { n: "Atmo Reality", v: 9 }, { n: "Pad Expanse", v: 10 }, { n: "Pad Outer Worlds", v: 11 }
+            { n: "B3 Pad", v: 3 }, { n: "Indigo 84", v: 4 }, { n: "Virus A18", v: 5 },
+            { n: "Piano", v: 6 }, { n: "Strings", v: 7 }, { n: "Interstellar", v: 8 },
+            { n: "Atmo", v: 9 }, { n: "Expanse", v: 10 }, { n: "Outer World", v: 11 }
         ];
 
         const grid = document.getElementById('pad-grid');
