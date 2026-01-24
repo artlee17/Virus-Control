@@ -3,60 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus Control</title>
+    <title>Virus USB Control</title>
     <style>
         body { background: #0d0d0d; color: white; font-family: sans-serif; margin: 0; padding: 15px; text-align: center; }
-        .fader-container { display: flex; justify-content: space-around; height: 200px; margin-bottom: 20px; }
+        .fader-container { display: flex; justify-content: space-around; height: 250px; margin-bottom: 20px; }
         .f-grp { display: flex; flex-direction: column; align-items: center; }
-        input[type=range] { appearance: slider-vertical; width: 40px; height: 100%; background: #333; }
+        input[type=range] { appearance: slider-vertical; width: 45px; height: 100%; background: #333; }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        button { background: #252525; border: none; border-bottom: 4px solid #000; color: white; padding: 15px 5px; border-radius: 8px; font-weight: bold; }
+        button { background: #252525; border: none; border-bottom: 4px solid #000; color: white; padding: 15px 5px; border-radius: 8px; font-weight: bold; height: 60px; }
         button:active { background: #00f2ff; color: black; transform: translateY(2px); border: none; }
-        #debug { background: #000; color: #0f0; font-family: monospace; padding: 10px; margin-top: 20px; font-size: 12px; border: 1px solid #333; }
+        #debug { background: #000; color: #0f0; font-family: monospace; padding: 10px; margin-top: 20px; font-size: 12px; border: 1px solid #333; min-height: 20px; }
+        .status-bar { margin-bottom: 10px; font-size: 12px; color: #888; }
     </style>
 </head>
 <body>
 
-    <h3 style="color: #00f2ff; margin-bottom: 20px;">VIRUS CTRL > PORT 7</h3>
+    <div class="status-bar" id="midi-status">Waiting for USB MIDI...</div>
+    <h3 style="color: #00f2ff; margin: 10px 0;">VIRUS USB CTRL</h3>
 
     <div class="fader-container">
-        <div class="f-grp"><input type="range" orient="vertical" oninput="u(1,this.value,'v1')"><div id="v1">MW: 0</div></div>
-        <div class="f-grp"><input type="range" orient="vertical" oninput="u(7,this.value,'v2')"><div id="v2">REL: 0</div></div>
-        <div class="f-grp"><input type="range" orient="vertical" oninput="u(30,this.value,'v3')"><div id="v3">FLT: 0</div></div>
-        <div class="f-grp"><input type="range" orient="vertical" oninput="u(20,this.value,'v4')"><div id="v4">MST: 0</div></div>
+        <div class="f-grp"><input type="range" orient="vertical" min="0" max="127" value="0" oninput="u(1,this.value,'v1')"><div id="v1">MW: 0</div></div>
+        <div class="f-grp"><input type="range" orient="vertical" min="0" max="127" value="0" oninput="u(7,this.value,'v2')"><div id="v2">REL: 0</div></div>
+        <div class="f-grp"><input type="range" orient="vertical" min="0" max="127" value="0" oninput="u(30,this.value,'v3')"><div id="v3">FLT: 0</div></div>
+        <div class="f-grp"><input type="range" orient="vertical" min="0" max="127" value="0" oninput="u(20,this.value,'v4')"><div id="v4">MST: 0</div></div>
     </div>
 
     <div class="grid">
-        <button onclick="send(27,0)">A1 FIRST</button>
-        <button onclick="send(27,1)">B74 SHORT</button>
-        <button onclick="send(27,2)">B74 LONG</button>
-        <button onclick="send(27,3)">B3</button>
-        <button onclick="send(27,4)">INDIGO</button>
-        <button onclick="send(27,5)">VIRUS A</button>
+        <button onclick="sendCC(27,0)">A1 FIRST</button>
+        <button onclick="sendCC(27,1)">B74 SHORT</button>
+        <button onclick="sendCC(27,2)">B74 LONG</button>
+        <button onclick="sendCC(27,3)">B3</button>
+        <button onclick="sendCC(27,4)">INDIGO</button>
+        <button onclick="sendCC(27,5)">VIRUS A</button>
     </div>
 
-    <div id="debug">> Status: Ready</div>
+    <div id="debug">> System Ready</div>
 
     <script>
-        const IP = "10.0.0.47";
+        let midiOut = null;
         const log = (m) => document.getElementById('debug').innerText = "> " + m;
 
-        async function send(cc, val) {
-            try {
-                fetch(`http://${IP}:4000/sendmidi`, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ midiport: 7, status: 178, data1: parseInt(cc), data2: parseInt(val) })
-                });
-                log("CC " + cc + " -> " + val);
-            } catch (e) { log("Error: " + e); }
+        // 1. Request MIDI Access
+        if (navigator.requestMIDIAccess) {
+            navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+        } else {
+            log("Web MIDI not supported in this browser.");
+        }
+
+        function onMIDISuccess(midi) {
+            const outputs = Array.from(midi.outputs.values());
+            if (outputs.length > 0) {
+                // Pick the first available MIDI output (your USB connection)
+                midiOut = outputs[0];
+                document.getElementById('midi-status').innerText = "CONNECTED: " + midiOut.name;
+                document.getElementById('midi-status').style.color = "#0f0";
+                log("USB MIDI Active");
+            } else {
+                document.getElementById('midi-status').innerText = "NO USB MIDI DETECTED";
+                log("Plug in USB and refresh.");
+            }
+        }
+
+        function onMIDIFailure() {
+            log("Could not access MIDI devices.");
+        }
+
+        // 2. Send MIDI Message
+        function sendCC(cc, val) {
+            if (midiOut) {
+                // 0xB2 = Control Change on Channel 3
+                // (0xB0 = Ch1, 0xB1 = Ch2, 0xB2 = Ch3)
+                midiOut.send([0xB2, cc, val]);
+                log("Sent CC " + cc + " -> " + val);
+            } else {
+                log("Not connected to USB.");
+            }
         }
 
         function u(cc, val, id) {
             const labels = {v1:'MW', v2:'REL', v3:'FLT', v4:'MST'};
             document.getElementById(id).innerText = labels[id] + ": " + val;
-            send(cc, val);
+            sendCC(cc, val);
         }
     </script>
 </body>
