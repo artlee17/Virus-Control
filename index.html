@@ -1,109 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus MIDI Controller</title>
-    <style>
-        :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
-        
-        .header { background: var(--accent); padding: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .btn { background: #000; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        select { background: #222; color: white; border: 1px solid #444; padding: 8px; border-radius: 4px; }
-
-        .main { display: flex; flex: 1; padding: 15px; gap: 20px; }
-        
-        .fader-panel { display: flex; gap: 15px; background: var(--panel); padding: 20px; border-radius: 15px; }
-        .fader-group { display: flex; flex-direction: column; align-items: center; }
-        .label { font-size: 10px; text-transform: uppercase; margin-bottom: 10px; color: #888; }
-        input[type=range][orient=vertical] { appearance: slider-vertical; width: 40px; height: 250px; background: #333; }
-        .val { margin-top: 10px; font-family: monospace; color: var(--accent); }
-
-        .grid-panel { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding-right: 10px; }
-        .pad { background: #252525; border: none; border-radius: 8px; color: #fff; height: 60px; font-weight: bold; border-bottom: 4px solid #000; }
-        .pad:active { background: var(--accent); transform: translateY(2px); border-bottom: 0; }
-
-        #debug { background: #000; color: #0f0; font-family: monospace; padding: 10px; font-size: 12px; height: 40px; border-top: 1px solid #333; }
-    </style>
+<title>MIDI Controller</title>
+<style>
+  body { background-color: #111; color: #eee; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; }
+  #header { background-color: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+  #main { display: flex; flex: 1; overflow: hidden; }
+  #faders { width: 300px; padding: 20px; display: flex; justify-content: space-around; border-right: 1px solid #333; }
+  .fader-container { display: flex; flex-direction: column; align-items: center; }
+  input[type=range] { writing-mode: bt-lr; -webkit-appearance: slider-vertical; width: 50px; height: 300px; padding: 0 5px; }
+  #buttons { flex: 1; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: auto; }
+  button { padding: 20px; font-size: 1.1em; background-color: #333; color: #eee; border: 1px solid #444; border-radius: 5px; cursor: pointer; }
+  button:active { background-color: #555; }
+  #debug { padding: 10px; background-color: #000; color: #0f0; font-family: monospace; font-size: 0.9em; }
+</style>
 </head>
 <body>
 
-    <div class="header">
-        <button id="initBtn" class="btn">INIT MIDI</button>
-        <select id="midiOutSelect"><option>Searching...</option></select>
-        <button id="fsBtn" class="btn">FULLSCREEN</button>
-        <button id="panicBtn" class="btn" style="background:#900">PANIC</button>
+<div id="header">
+  <button onclick="initMIDI()">Connect MIDI</button>
+  <div id="device-name">No device connected</div>
+  <button onclick="toggleFS()">Fullscreen</button>
+</div>
+
+<div id="main">
+  <div id="faders">
+    <div class="fader-container">
+      <label>Pitch</label>
+      <input type="range" min="0" max="127" value="64" id="pitch-fader">
+      <span id="pitch-val">64</span>
     </div>
-
-    <div class="main">
-        <div class="fader-panel">
-            <div class="fader-group"><div class="label">Pitch</div><input type="range" id="pitch" orient="vertical" min="0" max="127" value="64"><div class="val" id="vp">64</div></div>
-            <div class="fader-group"><div class="label">Mod W</div><input type="range" id="f1" orient="vertical" min="0" max="127" value="0" oninput="upd(1, this.value, 'v1')"><div class="val" id="v1">0</div></div>
-            <div class="fader-group"><div class="label">Rel</div><input type="range" id="f2" orient="vertical" min="0" max="127" value="0" oninput="upd(7, this.value, 'v2')"><div class="val" id="v2">0</div></div>
-            <div class="fader-group"><div class="label">Mod K</div><input type="range" id="f3" orient="vertical" min="0" max="127" value="0" oninput="upd(30, this.value, 'v3')"><div class="val" id="v3">0</div></div>
-        </div>
-
-        <div class="grid-panel" id="padGrid">
-            </div>
+    <div class="fader-container">
+      <label>Mod</label>
+      <input type="range" min="0" max="127" value="0" id="mod-fader">
+      <span id="mod-val">0</span>
     </div>
+  </div>
 
-    <div id="debug">> System Ready.</div>
+  <div id="buttons">
+    <button onclick="sendCC(27, 0)">A1 First</button>
+    <button onclick="sendCC(27, 1)">B74 Short</button>
+    <button onclick="sendCC(27, 2)">B74 Long</button>
+    <button onclick="sendCC(27, 3)">B3 Organ</button>
+    <button onclick="sendCC(27, 4)">Indigo 84</button>
+    <button onclick="sendCC(27, 5)">Virus A18</button>
+    <button onclick="sendCC(27, 6)">Piano</button>
+    <button onclick="sendCC(27, 7)">Movie Str</button>
+    <button onclick="sendCC(27, 8)">Organ Int</button>
+    <button onclick="sendCC(27, 9)">Atmo Real</button>
+  </div>
+</div>
 
-    <script>
-        let midiOut = null;
+<div id="debug">Ready</div>
 
-        const presets = [
-            "A1 First", "B74 Short", "B74 Long", "B3 Organ", "Indigo 84", "Virus A18",
-            "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W",
-            "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn",
-            "I Made This", "Space Brass", "Crystal"
-        ];
+<script>
+let midiOutput = null;
 
-        async function initMidi() {
-            try {
-                const access = await navigator.requestMIDIAccess();
-                const outputs = Array.from(access.outputs.values());
-                const sel = document.getElementById('midiOutSelect');
-                sel.innerHTML = '';
-                outputs.forEach((out, i) => {
-                    let opt = document.createElement('option');
-                    opt.value = i; opt.innerText = out.name;
-                    sel.appendChild(opt);
-                });
-                sel.onchange = (e) => { midiOut = outputs[e.target.value]; };
-                midiOut = outputs[0];
-                document.getElementById('debug').innerText = "> Active: " + midiOut.name;
-            } catch (e) { document.getElementById('debug').innerText = "> Error: " + e; }
-        }
+function log(msg) {
+  document.getElementById('debug').innerText = msg;
+}
 
-        function upd(cc, val, id) {
-            document.getElementById(id).innerText = val;
-            if (midiOut) midiOut.send([0xB0, cc, val]);
-        }
+async function initMIDI() {
+  try {
+    const midiAccess = await navigator.requestMIDIAccess();
+    const outputs = Array.from(midiAccess.outputs.values());
+    if (outputs.length > 0) {
+      midiOutput = outputs[0];
+      document.getElementById('device-name').innerText = midiOutput.name;
+      log("Connected to " + midiOutput.name);
+    } else {
+      log("No MIDI output devices found");
+    }
+  } catch (err) {
+    log("MIDI access denied: " + err);
+  }
+}
 
-        const p = document.getElementById('pitch');
-        p.oninput = () => {
-            document.getElementById('vp').innerText = p.value;
-            if (midiOut) midiOut.send([0xE0, 0, p.value]);
-        };
-        p.onmouseup = p.ontouchend = () => {
-            p.value = 64; document.getElementById('vp').innerText = 64;
-            if (midiOut) midiOut.send([0xE0, 0, 64]);
-        };
+function sendCC(cc, value) {
+  if (midiOutput) {
+    midiOutput.send([0xB0, cc, value]);
+    log("Sent CC " + cc + ": " + value);
+  }
+}
 
-        const grid = document.getElementById('padGrid');
-        presets.forEach((name, i) => {
-            const btn = document.createElement('button');
-            btn.className = 'pad';
-            btn.innerText = name;
-            btn.onclick = () => { if (midiOut) midiOut.send([0xB0, 27, i]); };
-            grid.appendChild(btn);
-        });
+document.getElementById('mod-fader').addEventListener('input', (e) => {
+  const val = parseInt(e.target.value);
+  document.getElementById('mod-val').innerText = val;
+  sendCC(1, val);
+});
 
-        document.getElementById('initBtn').onclick = initMidi;
-        document.getElementById('panicBtn').onclick = () => { if (midiOut) midiOut.send([0xB0, 123, 0]); };
-        document.getElementById('fsBtn').onclick = () => { document.documentElement.requestFullscreen(); };
-    </script>
+const pf = document.getElementById('pitch-fader');
+pf.addEventListener('input', (e) => {
+  const val = parseInt(e.target.value);
+  document.getElementById('pitch-val').innerText = val;
+  if (midiOutput) midiOutput.send([0xE0, 0, val]);
+});
+
+pf.addEventListener('touchend', () => {
+  pf.value = 64;
+  document.getElementById('pitch-val').innerText = 64;
+  if (midiOutput) midiOutput.send([0xE0, 0, 64]);
+});
+
+function toggleFS() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+</script>
+
 </body>
 </html>
