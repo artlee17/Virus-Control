@@ -3,164 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus MIDI Control (Restored)</title>
+    <title>Virus MIDI Controller</title>
     <style>
-        :root { --red: #ff3333; --purple: #a044ff; --bg: #0d0d0d; --panel: #1a1a1a; }
-        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); color: white; font-family: sans-serif; }
-        body { display: flex; flex-direction: column; }
+        :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
         
-        .header { background: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; }
-        .btn { border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; color: white; background: #444; }
-        select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 4px; flex-grow: 1; margin: 0 10px; }
+        .header { background: var(--accent); padding: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .btn { background: #000; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        select { background: #222; color: white; border: 1px solid #444; padding: 8px; border-radius: 4px; }
 
-        .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; }
-        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; color: #666; }
-        .v-mode .tab-v { color: var(--red); border-bottom: 3px solid var(--red); background: var(--panel); }
-        .c-mode .tab-c { color: var(--purple); border-bottom: 3px solid var(--purple); background: var(--panel); }
-
-        .container { display: flex; flex: 1; padding: 10px; gap: 15px; overflow: hidden; }
+        .main { display: flex; flex: 1; padding: 15px; gap: 20px; }
         
-        .fader-panel { width: 40%; background: var(--panel); border-radius: 12px; padding: 15px; border: 1px solid #333; display: flex; flex-direction: column; }
-        .fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; margin-bottom: 10px; }
-        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
-        .label { color: #888; font-size: 10px; text-transform: uppercase; font-weight: bold; text-align: center; }
-        
-        input[type=range][orient=vertical] { appearance: slider-vertical; width: 35px; height: 100%; background: #333; }
-        .val { font-family: monospace; font-size: 12px; background: #000; padding: 2px 6px; border-radius: 4px; margin-top: 5px; border: 1px solid #444; }
-        .v-mode .val { color: var(--red); border-color: var(--red); }
-        .c-mode .val { color: var(--purple); border-color: var(--purple); }
+        /* Large Vertical Faders */
+        .fader-panel { display: flex; gap: 15px; background: var(--panel); padding: 20px; border-radius: 15px; }
+        .fader-group { display: flex; flex-direction: column; align-items: center; }
+        .label { font-size: 10px; text-transform: uppercase; margin-bottom: 10px; color: #888; }
+        input[type=range][orient=vertical] { appearance: slider-vertical; width: 40px; height: 250px; background: #333; }
+        .val { margin-top: 10px; font-family: monospace; color: var(--accent); }
 
-        .button-panel { width: 60%; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .grid { display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; padding-bottom: 100px; }
-        .grid.active { display: grid; }
-        .pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 13px; font-weight: bold; min-height: 70px; cursor: pointer; border-bottom: 4px solid #000; }
-        .v-mode .selected { background: var(--red); color: white; border-bottom: 0px; transform: translateY(3px); }
-        .c-mode .selected { background: var(--purple); color: white; border-bottom: 0px; transform: translateY(3px); }
+        /* Button Grid */
+        .grid-panel { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding-right: 10px; }
+        .pad { background: #252525; border: none; border-radius: 8px; color: #fff; height: 60px; font-weight: bold; border-bottom: 4px solid #000; }
+        .pad:active { background: var(--accent); transform: translateY(2px); border-bottom: 0; }
 
-        #debug { background: #000; color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; border-top: 1px solid #333; height: 40px; }
+        #debug { background: #000; color: #0f0; font-family: monospace; padding: 10px; font-size: 12px; height: 40px; border-top: 1px solid #333; }
     </style>
 </head>
-<body id="body" class="v-mode">
+<body>
 
     <div class="header">
-        <button id="init" class="btn" style="background:var(--red)">INIT USB</button>
-        <select id="midi-out"><option>Select Port...</option></select>
-        <button id="panic" class="btn" style="background:#900">PANIC</button>
+        <button id="initBtn" class="btn">INIT MIDI</button>
+        <select id="midiOutSelect"><option>Searching...</option></select>
+        <button id="fsBtn" class="btn">FULLSCREEN</button>
+        <button id="panicBtn" class="btn" style="background:#900">PANIC</button>
     </div>
 
-    <div class="tabs">
-        <div class="tab tab-v" onclick="setMode('v')">VIRUS (CH 12)</div>
-        <div class="tab tab-c" onclick="setMode('c')">CINEMATIC (CH 14)</div>
-    </div>
-
-    <div class="container">
+    <div class="main">
         <div class="fader-panel">
-            <div class="fader-row">
-                <div class="fader-group"><div class="label" id="l-p">Pitch</div><input type="range" id="pitch" orient="vertical" min="0" max="127" value="64"><div class="val" id="v-p">64</div></div>
-                <div class="fader-group"><div class="label" id="l-1">Mod W</div><input type="range" id="f1" orient="vertical" min="0" max="127" value="0" oninput="upd(1, this.value, 'v1')"><div class="val" id="v1">0</div></div>
-                <div class="fader-group"><div class="label" id="l-2">Rel</div><input type="range" id="f2" orient="vertical" min="0" max="127" value="0" oninput="upd(7, this.value, 'v2')"><div class="val" id="v2">0</div></div>
-                <div class="fader-group"><div class="label" id="l-3">Mod K</div><input type="range" id="f3" orient="vertical" min="0" max="127" value="0" oninput="upd(30, this.value, 'v3')"><div class="val" id="v3">0</div></div>
-            </div>
-            <div style="border-top: 1px solid #444; padding-top: 10px; text-align: center;">
-                <div class="label">Master (CC 20)</div>
-                <input type="range" id="macro" style="width:100%" min="0" max="64" value="0" oninput="upd(20, this.value, 'vm')">
-                <div class="val" id="vm" style="margin:auto">0</div>
-            </div>
+            <div class="fader-group"><div class="label">Pitch</div><input type="range" id="pitch" orient="vertical" min="0" max="127" value="64"><div class="val" id="vp">64</div></div>
+            <div class="fader-group"><div class="label">Mod W</div><input type="range" id="f1" orient="vertical" min="0" max="127" value="0" oninput="upd(1, this.value, 'v1')"><div class="val" id="v1">0</div></div>
+            <div class="fader-group"><div class="label">Rel</div><input type="range" id="f2" orient="vertical" min="0" max="127" value="0" oninput="upd(7, this.value, 'v2')"><div class="val" id="v2">0</div></div>
+            <div class="fader-group"><div class="label">Mod K</div><input type="range" id="f3" orient="vertical" min="0" max="127" value="0" oninput="upd(30, this.value, 'v3')"><div class="val" id="v3">0</div></div>
         </div>
 
-        <div class="button-panel">
-            <div id="grid-v" class="grid active">
-                <button class="pad" onclick="sCC(27,0,this)">A1 First</button>
-                <button class="pad" onclick="sCC(27,1,this)">B74 Short</button>
-                <button class="pad" onclick="sCC(27,2,this)">B74 Long</button>
-                <button class="pad" onclick="sCC(27,18,this)">I Made This</button>
-                <button class="pad" onclick="sCC(27,19,this)">Space Brass</button>
-                <button class="pad" onclick="sCC(27,20,this)">Crystal</button>
+        <div class="grid-panel" id="padGrid">
             </div>
-            <div id="grid-c" class="grid">
-                <button class="pad" style="grid-column: span 2" onclick="sPC(0,this)">TEST (PC 1)</button>
-            </div>
-        </div>
     </div>
 
-    <div id="debug">> USB Standing By...</div>
+    <div id="debug">> System Ready. Connect via USB.</div>
 
     <script>
-        let midi = null;
-        let chan = 11; // CH 12
+        let midiOut = null;
         let wakeLock = null;
 
-        async function init() {
+        // The 21 Presets from your January build
+        const presets = [
+            "A1 First", "B74 Short", "B74 Long", "B3 Organ", "Indigo 84", "Virus A18",
+            "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W",
+            "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn",
+            "I Made This", "Space Brass", "Crystal"
+        ];
+
+        async function initMidi() {
             try {
                 if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
                 const access = await navigator.requestMIDIAccess();
-                const out = Array.from(access.outputs.values());
-                const sel = document.getElementById('midi-out');
+                const outputs = Array.from(access.outputs.values());
+                const sel = document.getElementById('midiOutSelect');
                 sel.innerHTML = '';
-                out.forEach((o, i) => {
+                outputs.forEach((out, i) => {
                     let opt = document.createElement('option');
-                    opt.value = i; opt.innerText = o.name;
+                    opt.value = i; opt.innerText = out.name;
                     sel.appendChild(opt);
                 });
-                sel.onchange = (e) => { midi = out[e.target.value]; };
-                midi = out[0];
-                document.getElementById('debug').innerText = "> Connected: " + (midi ? midi.name : "None");
+                sel.onchange = (e) => { midiOut = outputs[e.target.value]; };
+                midiOut = outputs[0];
+                document.getElementById('debug').innerText = "> Active: " + midiOut.name;
             } catch (e) { document.getElementById('debug').innerText = "> Error: " + e; }
-        }
-
-        function setMode(m) {
-            const b = document.getElementById('body');
-            document.getElementById('grid-v').classList.remove('active');
-            document.getElementById('grid-c').classList.remove('active');
-            if(m === 'v') {
-                chan = 11; b.className = 'v-mode';
-                document.getElementById('grid-v').classList.add('active');
-                setL("Pitch", "Mod W", "Rel", "Mod K");
-            } else {
-                chan = 13; b.className = 'c-mode';
-                document.getElementById('grid-c').classList.add('active');
-                setL("Expr", "Timbre", "Vib", "Dyn");
-            }
-        }
-
-        function setL(p, f1, f2, f3) {
-            document.getElementById('l-p').innerText = p;
-            document.getElementById('l-1').innerText = f1;
-            document.getElementById('l-2').innerText = f2;
-            document.getElementById('l-3').innerText = f3;
         }
 
         function upd(cc, val, id) {
             document.getElementById(id).innerText = val;
-            if (midi) midi.send([0xB0 + chan, cc, val]);
+            if (midiOut) midiOut.send([0xB0, cc, val]);
         }
 
-        function sCC(cc, val, btn) {
-            document.querySelectorAll('.pad').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            if (midi) midi.send([0xB0 + chan, cc, val]);
-        }
-
-        function sPC(val, btn) {
-            document.querySelectorAll('.pad').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            if (midi) midi.send([0xC0 + chan, val]);
-        }
-
+        // Pitch Bend Auto-Center
         const p = document.getElementById('pitch');
         p.oninput = () => {
-            document.getElementById('v-p').innerText = p.value;
-            if (midi) midi.send([0xE0 + chan, 0, p.value]);
+            document.getElementById('vp').innerText = p.value;
+            if (midiOut) midiOut.send([0xE0, 0, p.value]);
         };
         p.onmouseup = p.ontouchend = () => {
-            p.value = 64; document.getElementById('v-p').innerText = 64;
-            if (midi) midi.send([0xE0 + chan, 0, 64]);
+            p.value = 64; document.getElementById('vp').innerText = 64;
+            if (midiOut) midiOut.send([0xE0, 0, 64]);
         };
 
-        document.getElementById('init').onclick = init;
-        document.getElementById('panic').onclick = () => {
-            if (midi) midi.send([0xB0 + chan, 123, 0]);
-        };
+        // Generate Grid
+        const grid = document.getElementById('padGrid');
+        presets.forEach((name, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'pad';
+            btn.innerText = name;
+            btn.onclick = () => { if (midiOut) midiOut.send([0xB0, 27, i]); };
+            grid.appendChild(btn);
+        });
+
+        document.getElementById('initBtn').onclick = initMidi;
+        document.getElementById('panicBtn').onclick = () => { if (midiOut) midiOut.send([0xB0, 123, 0]); };
+        document.getElementById('fsBtn').onclick = () => { document.documentElement.requestFullscreen(); };
     </script>
 </body>
 </html>
