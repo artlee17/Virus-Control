@@ -3,153 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus Red USB</title>
+    <title>Virus Red Multi</title>
     <style>
-        :root { --accent: #ff0000; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #ff0000; --panic: #990000; }
-        body { 
-            background: var(--bg); color: white; font-family: sans-serif; 
-            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
-        }
+        :root { --accent: #ff0000; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #ff0000; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .setup-bar { background: #222; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; }
-        .btn-header { border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; text-transform: uppercase; background: #444; color: #fff; }
+        /* Tab Navigation */
+        .tab-bar { display: flex; background: #222; border-bottom: 2px solid #444; }
+        .tab { flex: 1; padding: 15px; text-align: center; font-weight: bold; cursor: pointer; color: #888; text-transform: uppercase; font-size: 12px; }
+        .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); background: #2a2a2a; }
+
+        .setup-bar { background: #111; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #666; }
         
-        .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 120px); overflow: hidden; }
+        .main-container { display: none; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 140px); }
+        .main-container.active { display: flex; }
         
-        /* Sidebar for Vertical Faders */
+        /* Layout Components */
         .fader-section { display: flex; flex-direction: column; flex: 0.35; background: var(--panel); border-radius: 12px; padding: 10px; border: 1px solid #333; gap: 5px; }
-        .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; min-height: 0; }
-        
+        .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; }
         .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 22%; }
-        .fader-label { color: #888; font-size: 9px; text-transform: uppercase; text-align: center; font-weight: bold; margin-bottom: 5px; }
+        .fader-label { color: #888; font-size: 9px; text-transform: uppercase; font-weight: bold; }
         
-        /* Force Vertical Orientation */
-        input[type=range].vertical { 
-            writing-mode: bt-lr; /* IE */
-            appearance: slider-vertical; 
-            width: 35px; 
-            height: 100%; 
-            background: #333; 
-            border-radius: 10px; 
-            outline: none; 
-        }
+        input[type=range].vertical { appearance: slider-vertical; width: 35px; height: 100%; background: #333; outline: none; }
         
-        /* Master Horizontal Fader */
-        .macro-container { flex-shrink: 0; border-top: 1px solid #333; padding-top: 15px; padding-bottom: 5px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        input[id=macro-slider] { appearance: none; width: 90%; height: 12px; background: #333; border-radius: 6px; outline: none; }
-        input[id=macro-slider]::-webkit-slider-thumb { appearance: none; width: 26px; height: 26px; background: var(--accent); border-radius: 50%; cursor: pointer; border: 2px solid #000; }
+        .macro-container { border-top: 1px solid #333; padding-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        input.horizontal { appearance: none; width: 90%; height: 12px; background: #333; border-radius: 6px; outline: none; }
+        input.horizontal::-webkit-slider-thumb { appearance: none; width: 26px; height: 26px; background: var(--accent); border-radius: 50%; border: 2px solid #000; }
         
-        .val-indicator { color: var(--accent); font-family: monospace; font-size: 11px; font-weight: bold; background: #000; padding: 2px 6px; border-radius: 3px; border: 1px solid #333; }
+        .val-indicator { color: var(--accent); font-family: monospace; font-size: 11px; background: #000; padding: 2px 6px; border-radius: 3px; }
 
-        /* Button Grid */
         .button-section { flex: 0.65; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; }
-        .midi-pad { 
-            background: #252525; border: none; border-radius: 8px; color: #bbb; 
-            font-size: 13px; font-weight: 700; height: 55px; cursor: pointer;
-            border-bottom: 4px solid #000; transition: all 0.1s ease;
-        }
-        .midi-pad.selected { background: var(--active-bg); color: #fff; border-bottom: 0px; transform: translateY(3px); }
+        .midi-pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 13px; font-weight: 700; height: 55px; border-bottom: 4px solid #000; }
+        .midi-pad:active { background: var(--active-bg); transform: translateY(3px); border-bottom: none; }
 
-        #debug-box { background: #000; color: #ff0000; font-family: monospace; font-size: 11px; height: 40px; padding: 5px 20px; border-top: 1px solid #333; line-height: 40px; }
+        #debug-box { background: #000; color: var(--accent); font-family: monospace; font-size: 11px; height: 35px; padding: 0 20px; line-height: 35px; border-top: 1px solid #333; }
     </style>
 </head>
 <body>
 
-    <div class="setup-bar">
-        <div id="usb-status" style="font-weight: bold; font-size: 12px; color: var(--accent);">USB: CHECKING...</div>
-        <button id="btn-wake" class="btn-header">Wake</button>
-        <button id="btn-panic" class="btn-header" style="background:var(--panic)">Panic</button>
+    <div class="tab-bar">
+        <div class="tab active" onclick="switchTab('virus')">Virus (Ch 3)</div>
+        <div class="tab" onclick="switchTab('cinematic')">Cinematic (Ch 4)</div>
     </div>
 
-    <div class="main-container">
+    <div class="setup-bar">
+        <div id="usb-status">USB: DISCONNECTED</div>
+        <div id="current-ch">CHANNEL: 3</div>
+    </div>
+
+    <div id="virus" class="main-container active">
         <div class="fader-section">
             <div class="v-fader-row">
-                <div class="fader-group"><div class="fader-label">Pitch</div><input type="range" id="pitch" class="vertical" orient="vertical" min="0" max="127" value="64"><div class="val-indicator" id="v-pitch">64</div></div>
-                <div class="fader-group"><div class="fader-label">Mod W</div><input type="range" class="vertical" orient="vertical" min="0" max="127" value="0" oninput="updateFader(1, this.value, 'v1')"><div class="val-indicator" id="v1">0</div></div>
-                <div class="fader-group"><div class="fader-label">Rel</div><input type="range" class="vertical" orient="vertical" min="0" max="127" value="0" oninput="updateFader(7, this.value, 'v2')"><div class="val-indicator" id="v2">0</div></div>
-                <div class="fader-group"><div class="fader-label">Mod K</div><input type="range" class="vertical" orient="vertical" min="0" max="127" value="0" oninput="updateFader(30, this.value, 'v3')"><div class="val-indicator" id="v3">0</div></div>
+                <div class="fader-group"><div class="fader-label">Pitch</div><input type="range" id="pitch" class="vertical" min="0" max="127" value="64"><div class="val-indicator" id="v-pitch">64</div></div>
+                <div class="fader-group"><div class="fader-label">Mod W</div><input type="range" class="vertical" min="0" max="127" value="0" oninput="u(3,1,this.value,'v1')"><div class="val-indicator" id="v1">0</div></div>
+                <div class="fader-group"><div class="fader-label">Rel</div><input type="range" class="vertical" min="0" max="127" value="0" oninput="u(3,7,this.value,'v2')"><div class="val-indicator" id="v2">0</div></div>
+                <div class="fader-group"><div class="fader-label">Cutoff</div><input type="range" class="vertical" min="0" max="127" value="0" oninput="u(3,30,this.value,'v3')"><div class="val-indicator" id="v3">0</div></div>
             </div>
-            
             <div class="macro-container">
                 <div class="fader-label">Master Macro (CC 20)</div>
-                <input type="range" id="macro-slider" min="0" max="127" value="0" oninput="updateFader(20, this.value, 'v-macro')">
-                <div class="val-indicator" id="v-macro">0</div>
+                <input type="range" class="horizontal" min="0" max="127" value="0" oninput="u(3,20,this.value,'v-m1')">
+                <div class="val-indicator" id="v-m1">0</div>
             </div>
         </div>
-        
-        <div class="button-section" id="pad-grid"></div>
+        <div class="button-section" id="virus-pads"></div>
+    </div>
+
+    <div id="cinematic" class="main-container">
+        <div class="fader-section">
+            <div class="v-fader-row">
+                <div class="fader-group"><div class="fader-label">Expr</div><input type="range" class="vertical" min="0" max="127" value="0" oninput="u(4,11,this.value,'c1')"><div class="val-indicator" id="c1">0</div></div>
+                <div class="fader-group"><div class="fader-label">Dyn</div><input type="range" class="vertical" min="0" max="127" value="0" oninput="u(4,1,this.value,'c2')"><div class="val-indicator" id="c2">0</div></div>
+                <div class="fader-group"><div class="fader-label">Verb</div><input type="range" class="vertical" min="0" max="127" value="0" oninput="u(4,91,this.value,'c3')"><div class="val-indicator" id="c3">0</div></div>
+                <div class="fader-group"><div class="fader-label">Rel</div><input type="range" class="vertical" min="0" max="127" value="0" oninput="u(4,72,this.value,'c4')"><div class="val-indicator" id="c4">0</div></div>
+            </div>
+            <div class="macro-container">
+                <div class="fader-label">Cinematic Swell (CC 21)</div>
+                <input type="range" class="horizontal" min="0" max="127" value="0" oninput="u(4,21,this.value,'c-m1')">
+                <div class="val-indicator" id="c-m1">0</div>
+            </div>
+        </div>
+        <div class="button-section">
+            <button class="midi-pad" onclick="sendPC(4, 1)">PC 1: TEST</button>
+        </div>
     </div>
 
     <div id="debug-box">> Red System Ready</div>
 
     <script>
         let midiOut = null;
-        const logger = document.getElementById('debug-box');
-        const statusEl = document.getElementById('usb-status');
-        const log = (m) => logger.innerText = "> " + m;
+        const log = (m) => document.getElementById('debug-box').innerText = "> " + m;
 
-        if (navigator.requestMIDIAccess) {
-            navigator.requestMIDIAccess().then(onSuccess, () => log("MIDI Blocked"));
-        }
-
-        function onSuccess(midi) {
+        navigator.requestMIDIAccess().then(midi => {
             const outputs = Array.from(midi.outputs.values());
             if (outputs.length > 0) {
                 midiOut = outputs[0];
-                statusEl.innerText = "USB: " + midiOut.name.toUpperCase();
-                log("Connected to " + midiOut.name);
+                document.getElementById('usb-status').innerText = "USB: " + midiOut.name.toUpperCase();
             }
+        });
+
+        function switchTab(id) {
+            document.querySelectorAll('.main-container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.currentTarget.classList.add('active');
+            document.getElementById('current-ch').innerText = "CHANNEL: " + (id === 'virus' ? '3' : '4');
         }
 
-        function sendCC(cc, val) {
+        function u(ch, cc, val, id) {
+            document.getElementById(id).innerText = val;
             if (midiOut) {
-                midiOut.send([0xB2, cc, val]); // Ch 3
-                log(`CC ${cc} -> ${val}`);
+                const status = 0xAF + ch; // 0xB2 for Ch3, 0xB3 for Ch4
+                midiOut.send([status, cc, val]);
+                log(`Ch ${ch} | CC ${cc} -> ${val}`);
             }
         }
 
-        function updateFader(cc, val, displayId) {
-            document.getElementById(displayId).innerText = val;
-            sendCC(cc, val);
+        function sendPC(ch, pc) {
+            if (midiOut) {
+                const status = 0xCF + ch; // 0xC3 for Ch4 Program Change
+                midiOut.send([status, pc - 1]); // MIDI PC is 0-indexed
+                log(`Ch ${ch} | PC ${pc} Sent`);
+            }
         }
 
-        // Pitch Spring
+        // Pitch Spring (Virus Tab Only)
         const p = document.getElementById('pitch');
         p.oninput = () => {
             document.getElementById('v-pitch').innerText = p.value;
             if (midiOut) midiOut.send([0xE2, 0, p.value]);
         };
         p.onmouseup = p.ontouchend = () => {
-            p.value = 64; 
-            document.getElementById('v-pitch').innerText = 64;
+            p.value = 64; document.getElementById('v-pitch').innerText = 64;
             if (midiOut) midiOut.send([0xE2, 0, 64]);
         };
 
-        const presets = [
-            { n: "A1 First", v: 0 }, { n: "B74 Short", v: 1 }, { n: "B74 Long", v: 2 },
-            { n: "B3 Pad", v: 3 }, { n: "Indigo 84", v: 4 }, { n: "Virus A18", v: 5 },
-            { n: "Piano", v: 6 }, { n: "Strings", v: 7 }, { n: "Interstellar", v: 8 },
-            { n: "Atmo", v: 9 }, { n: "Expanse", v: 10 }, { n: "Outer World", v: 11 }
-        ];
-
-        const grid = document.getElementById('pad-grid');
-        presets.forEach((item) => {
+        // Populate Virus Pads
+        const vPresets = ["A1 First", "B74 Short", "B74 Long", "B3 Pad", "Indigo 84", "Virus A18"];
+        const vGrid = document.getElementById('virus-pads');
+        vPresets.forEach((n, i) => {
             const btn = document.createElement('button');
             btn.className = 'midi-pad';
-            btn.innerText = item.n;
-            btn.onclick = () => {
-                document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                sendCC(27, item.v);
-            };
-            grid.appendChild(btn);
+            btn.innerText = n;
+            btn.onclick = () => u(3, 27, i, 'debug-box');
+            vGrid.appendChild(btn);
         });
-
-        document.getElementById('btn-panic').onclick = () => sendCC(123, 0);
-        document.getElementById('btn-wake').onclick = () => {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else document.exitFullscreen();
-        };
     </script>
 </body>
 </html>
