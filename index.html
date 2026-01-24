@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus & Cinematic Control</title>
+    <title>Virus & Cinematic Master</title>
     <style>
         :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; --active-bg: #ff3333; }
         
@@ -11,38 +11,47 @@
         body { display: flex; flex-direction: column; }
         
         .setup-bar { background: #222; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; }
-        select { background: #333; color: white; border: 1px solid #555; padding: 6px; border-radius: 4px; flex-grow: 1; max-width: 140px; font-size: 13px; }
-        
         .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; }
-        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-weight: bold; color: #666; font-size: 13px; transition: 0.2s; }
+        .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-weight: bold; color: #666; font-size: 13px; }
         .tab.active { background: var(--panel); color: var(--accent); border-bottom: 3px solid var(--accent); }
         
-        .main-container { display: flex; flex: 1; padding: 10px; gap: 10px; overflow: hidden; height: 100%; }
+        /* Layout Container */
+        .main-container { display: flex; flex: 1; padding: 10px; gap: 10px; overflow: hidden; height: calc(100% - 110px); }
         
-        .fader-section { display: flex; flex-direction: column; width: 35%; background: var(--panel); border-radius: 12px; padding: 10px; border: 1px solid #333; }
+        /* Fader Panel */
+        .fader-section { display: flex; flex-direction: column; width: 35%; background: var(--panel); border-radius: 12px; padding: 10px; border: 1px solid #333; height: 100%; box-sizing: border-box; }
         .v-fader-row { display: flex; flex: 1; justify-content: space-around; min-height: 0; }
         .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; }
         .fader-label { color: #888; font-size: 9px; text-transform: uppercase; font-weight: bold; height: 25px; text-align: center; }
-        
         input[type=range][orient=vertical] { appearance: slider-vertical; width: 32px; height: 70%; background: #333; }
         
-        .macro-container { border-top: 1px solid #333; padding-top: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .macro-container { border-top: 1px solid #333; padding-top: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
         input[id=macro-slider] { appearance: none; width: 90%; height: 8px; background: #333; border-radius: 4px; }
         input[id=macro-slider]::-webkit-slider-thumb { appearance: none; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; border: 2px solid #fff; }
         
-        /* SCROLLABLE BUTTON SECTION */
-        .button-section { width: 65%; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; overflow-y: scroll; padding-bottom: 50px; -webkit-overflow-scrolling: touch; }
-        .midi-pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 13px; font-weight: 700; min-height: 60px; cursor: pointer; border-bottom: 4px solid #000; display: flex; align-items: center; justify-content: center; text-align: center; padding: 5px; }
+        /* FULL SCROLLABLE BUTTON SECTION */
+        .button-section { 
+            width: 65%; 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 10px; 
+            overflow-y: scroll; /* Forces vertical scrolling */
+            height: 100%;
+            padding-bottom: 40px; 
+            -webkit-overflow-scrolling: touch; 
+        }
+        .midi-pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 13px; font-weight: 700; height: 65px; cursor: pointer; border-bottom: 4px solid #000; display: flex; align-items: center; justify-content: center; text-align: center; padding: 5px; }
         .midi-pad.selected { background: var(--accent); color: #fff; border-bottom: 0px; transform: translateY(3px); }
 
         #debug-box { background: #000; color: #ff3333; font-family: monospace; font-size: 10px; height: 30px; padding: 5px 15px; border-top: 1px solid #333; flex-shrink: 0; }
+        .val-indicator { color: var(--accent); font-family: monospace; font-size: 10px; background: #000; padding: 1px 4px; border-radius: 3px; }
     </style>
 </head>
 <body>
 
     <div class="setup-bar">
         <button id="btn-init" style="background:#ff3333; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold;">INIT USB</button>
-        <select id="midi-select"><option>Midi Port...</option></select>
+        <select id="midi-select" style="background:#333; color:white; border:1px solid #555; padding:6px; border-radius:4px;"><option>Midi Port...</option></select>
         <button id="btn-panic" style="background:#990000; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold;">PANIC</button>
     </div>
 
@@ -75,6 +84,7 @@
         let activeChan = 2; // CH 3
         const grid = document.getElementById('pad-grid');
 
+        // Added more Virus presets to ensure scrolling is visible
         const layouts = {
             virus: {
                 chan: 2,
@@ -83,17 +93,17 @@
                     { n: "A1 First", v: 0 }, { n: "B74 Short", v: 1 }, { n: "B74 Long", v: 2 },
                     { n: "B3 Organ", v: 3 }, { n: "Indigo 84", v: 4 }, { n: "Virus A18", v: 5 },
                     { n: "Piano", v: 6 }, { n: "Movie Str", v: 7 }, { n: "Organ Int", v: 8 },
-                    { n: "Atmo Real", v: 9 }, { n: "Pad Exp", v: 10 }, { n: "Outer W", v: 11 }
+                    { n: "Atmo Real", v: 9 }, { n: "Pad Exp", v: 10 }, { n: "Outer W", v: 11 },
+                    { n: "Pad Stellar", v: 12 }, { n: "Man Steel", v: 13 }, { n: "Braaam", v: 14 },
+                    { n: "Drone", v: 15 }, { n: "Cinematic", v: 16 }, { n: "NinthHvn", v: 17 },
+                    { n: "Custom 1", v: 18 }, { n: "Space Brass", v: 19 }, { n: "Crystal", v: 20 }
                 ]
             },
             cinematic: {
                 chan: 3,
                 labels: ["Exp", "Expr", "Lyc", "Timbre"],
                 presets: [
-                    { n: "Cine Strings", v: 0 }, { n: "Epic Horns", v: 1 }, { n: "Taiko Hit", v: 2 },
-                    { n: "Stellar Pad", v: 3 }, { n: "Ether Drone", v: 4 }, { n: "Deep Sub", v: 5 },
-                    { n: "Short Spicc", v: 6 }, { n: "Long Sustain", v: 7 }, { n: "Tremolo", v: 8 },
-                    { n: "Woodwind", v: 9 }, { n: "Hybrid Hit", v: 10 }, { n: "Granular", v: 11 }
+                    { n: "TEST (PC 1)", v: 0, type: "pc" } // Sends Program Change 1
                 ]
             }
         };
@@ -102,17 +112,14 @@
             const config = layouts[key];
             activeChan = config.chan;
             
-            // Update UI Tabs
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(key === 'virus' ? 'tab-v' : 'tab-c').classList.add('active');
 
-            // Update Labels
             document.getElementById('lbl-p').innerText = config.labels[0];
             document.getElementById('lbl-f1').innerText = config.labels[1];
             document.getElementById('lbl-f2').innerText = config.labels[2];
             document.getElementById('lbl-f3').innerText = config.labels[3];
 
-            // Rebuild Button Grid
             grid.innerHTML = '';
             config.presets.forEach(item => {
                 const btn = document.createElement('button');
@@ -121,11 +128,19 @@
                 btn.onclick = () => {
                     document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
                     btn.classList.add('selected');
-                    if (midiOut) midiOut.send([0xB0 + activeChan, 27, item.v]);
+                    if (midiOut) {
+                        if (item.type === "pc") {
+                            // Status 0xC0 is Program Change. 0xC0 + 3 = 0xC3 (CH 4)
+                            midiOut.send([0xC0 + activeChan, item.v]);
+                            log("PC Sent: " + (item.v + 1));
+                        } else {
+                            midiOut.send([0xB0 + activeChan, 27, item.v]);
+                        }
+                    }
                 };
                 grid.appendChild(btn);
             });
-            log("Layout Switched: " + key.toUpperCase());
+            log("Layout: " + key.toUpperCase());
         }
 
         async function initMidi() {
@@ -140,7 +155,7 @@
                     selector.appendChild(opt);
                 });
                 midiOut = outputs[0];
-                if(midiOut) log("Connected: " + midiOut.name);
+                if(midiOut) log("Active: " + midiOut.name);
             } catch (err) { log("Error: " + err); }
         }
 
@@ -160,13 +175,11 @@
         };
 
         function log(m) { document.getElementById('debug-box').innerText = "> " + m; }
-
         document.getElementById('btn-init').onclick = initMidi;
         document.getElementById('btn-panic').onclick = () => {
             if (midiOut) midiOut.send([0xB0 + activeChan, 123, 0]);
         };
 
-        // Initial Load
         updateLayout('virus');
     </script>
 </body>
