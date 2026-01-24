@@ -1,38 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Virus Control</title>
     <style>
-        :root { --accent: #00f2ff; --bg: #0d0d0d; --panel: #1a1a1a; }
-        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
-        .header { background: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; }
-        .container { display: flex; flex: 1; padding: 10px; gap: 10px; height: calc(100vh - 100px); }
-        
-        /* Left: Faders */
-        .fader-section { flex: 0.4; background: var(--panel); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; border: 1px solid #333; }
-        .v-row { display: flex; flex: 1; justify-content: space-around; }
-        .f-grp { display: flex; flex-direction: column; align-items: center; width: 23%; }
-        input[type=range][orient=vertical] { appearance: slider-vertical; width: 30px; height: 100%; background: #333; }
-        .val { color: var(--accent); font-family: monospace; font-size: 12px; margin-top: 5px; }
-
-        /* Right: Pads */
-        .pad-section { flex: 0.6; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; }
-        .pad { background: #252525; border: none; border-radius: 6px; color: #fff; height: 55px; font-weight: bold; border-bottom: 4px solid #000; font-size: 12px; }
-        .pad:active { background: var(--accent); color: #000; transform: translateY(2px); border-bottom: none; }
-
-        #debug { background: #000; color: #0f0; font-family: monospace; font-size: 11px; height: 40px; padding: 0 15px; line-height: 40px; border-top: 1px solid #333; }
+        body { background: #0d0d0d; color: white; font-family: sans-serif; margin: 0; padding: 15px; text-align: center; }
+        .fader-container { display: flex; justify-content: space-around; height: 200px; margin-bottom: 20px; }
+        .f-grp { display: flex; flex-direction: column; align-items: center; }
+        input[type=range] { appearance: slider-vertical; width: 40px; height: 100%; background: #333; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        button { background: #252525; border: none; border-bottom: 4px solid #000; color: white; padding: 15px 5px; border-radius: 8px; font-weight: bold; }
+        button:active { background: #00f2ff; color: black; transform: translateY(2px); border: none; }
+        #debug { background: #000; color: #0f0; font-family: monospace; padding: 10px; margin-top: 20px; font-size: 12px; border: 1px solid #333; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div style="color: var(--accent); font-weight: bold; font-size: 14px;">VIRUS CTRL > PORT 7</div>
-        <button onclick="location.reload()" style="background:#444; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:10px;">REFRESH</button>
+    <h3 style="color: #00f2ff; margin-bottom: 20px;">VIRUS CTRL > PORT 7</h3>
+
+    <div class="fader-container">
+        <div class="f-grp"><input type="range" orient="vertical" oninput="u(1,this.value,'v1')"><div id="v1">MW: 0</div></div>
+        <div class="f-grp"><input type="range" orient="vertical" oninput="u(7,this.value,'v2')"><div id="v2">REL: 0</div></div>
+        <div class="f-grp"><input type="range" orient="vertical" oninput="u(30,this.value,'v3')"><div id="v3">FLT: 0</div></div>
+        <div class="f-grp"><input type="range" orient="vertical" oninput="u(20,this.value,'v4')"><div id="v4">MST: 0</div></div>
     </div>
 
-    <div class="container">
-        <div class="fader-section">
-            <div class="
+    <div class="grid">
+        <button onclick="send(27,0)">A1 FIRST</button>
+        <button onclick="send(27,1)">B74 SHORT</button>
+        <button onclick="send(27,2)">B74 LONG</button>
+        <button onclick="send(27,3)">B3</button>
+        <button onclick="send(27,4)">INDIGO</button>
+        <button onclick="send(27,5)">VIRUS A</button>
+    </div>
+
+    <div id="debug">> Status: Ready</div>
+
+    <script>
+        const IP = "10.0.0.47";
+        const log = (m) => document.getElementById('debug').innerText = "> " + m;
+
+        async function send(cc, val) {
+            try {
+                fetch(`http://${IP}:4000/sendmidi`, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ midiport: 7, status: 178, data1: parseInt(cc), data2: parseInt(val) })
+                });
+                log("CC " + cc + " -> " + val);
+            } catch (e) { log("Error: " + e); }
+        }
+
+        function u(cc, val, id) {
+            const labels = {v1:'MW', v2:'REL', v3:'FLT', v4:'MST'};
+            document.getElementById(id).innerText = labels[id] + ": " + val;
+            send(cc, val);
+        }
+    </script>
+</body>
+</html>
