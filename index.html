@@ -10,7 +10,7 @@
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); color: white; font-family: 'Inter', sans-serif; }
         body { display: flex; flex-direction: column; }
         
-        .setup-bar { background: #222; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; }
+        .setup-bar { background: #222; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; gap: 5px; }
         .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; }
         .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-weight: bold; color: #666; font-size: 13px; }
         .tab.active { background: var(--panel); color: var(--accent); border-bottom: 3px solid var(--accent); }
@@ -35,7 +35,7 @@
             display: grid; 
             grid-template-columns: repeat(2, 1fr); 
             gap: 10px; 
-            overflow-y: scroll; /* Forces vertical scrolling */
+            overflow-y: scroll; 
             height: 100%;
             padding-bottom: 40px; 
             -webkit-overflow-scrolling: touch; 
@@ -45,14 +45,17 @@
 
         #debug-box { background: #000; color: #ff3333; font-family: monospace; font-size: 10px; height: 30px; padding: 5px 15px; border-top: 1px solid #333; flex-shrink: 0; }
         .val-indicator { color: var(--accent); font-family: monospace; font-size: 10px; background: #000; padding: 1px 4px; border-radius: 3px; }
+        
+        .btn-header { border: none; padding: 8px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px; white-space: nowrap; }
     </style>
 </head>
 <body>
 
     <div class="setup-bar">
-        <button id="btn-init" style="background:#ff3333; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold;">INIT USB</button>
-        <select id="midi-select" style="background:#333; color:white; border:1px solid #555; padding:6px; border-radius:4px;"><option>Midi Port...</option></select>
-        <button id="btn-panic" style="background:#990000; color:white; border:none; padding:8px 12px; border-radius:4px; font-weight:bold;">PANIC</button>
+        <button id="btn-init" class="btn-header" style="background:#ff3333; color:white;">INIT USB</button>
+        <select id="midi-select" style="background:#333; color:white; border:1px solid #555; padding:6px; border-radius:4px; flex-grow: 1;"><option>Midi Port...</option></select>
+        <button id="btn-fs" class="btn-header" style="background:#444; color:white;">FULLSCREEN</button>
+        <button id="btn-panic" class="btn-header" style="background:#990000; color:white;">PANIC</button>
     </div>
 
     <div class="tabs">
@@ -84,7 +87,6 @@
         let activeChan = 2; // CH 3
         const grid = document.getElementById('pad-grid');
 
-        // Added more Virus presets to ensure scrolling is visible
         const layouts = {
             virus: {
                 chan: 2,
@@ -103,7 +105,7 @@
                 chan: 3,
                 labels: ["Exp", "Expr", "Lyc", "Timbre"],
                 presets: [
-                    { n: "TEST (PC 1)", v: 0, type: "pc" } // Sends Program Change 1
+                    { n: "TEST (PC 1)", v: 0, type: "pc" }
                 ]
             }
         };
@@ -130,57 +132,7 @@
                     btn.classList.add('selected');
                     if (midiOut) {
                         if (item.type === "pc") {
-                            // Status 0xC0 is Program Change. 0xC0 + 3 = 0xC3 (CH 4)
                             midiOut.send([0xC0 + activeChan, item.v]);
                             log("PC Sent: " + (item.v + 1));
                         } else {
-                            midiOut.send([0xB0 + activeChan, 27, item.v]);
-                        }
-                    }
-                };
-                grid.appendChild(btn);
-            });
-            log("Layout: " + key.toUpperCase());
-        }
-
-        async function initMidi() {
-            try {
-                const access = await navigator.requestMIDIAccess();
-                const outputs = Array.from(access.outputs.values());
-                const selector = document.getElementById('midi-select');
-                selector.innerHTML = '';
-                outputs.forEach((out, i) => {
-                    let opt = document.createElement('option');
-                    opt.value = i; opt.innerText = out.name;
-                    selector.appendChild(opt);
-                });
-                midiOut = outputs[0];
-                if(midiOut) log("Active: " + midiOut.name);
-            } catch (err) { log("Error: " + err); }
-        }
-
-        function updateFader(cc, val, displayId) {
-            document.getElementById(displayId).innerText = val;
-            if (midiOut) midiOut.send([0xB0 + activeChan, cc, val]);
-        }
-
-        const p = document.getElementById('pitch');
-        p.oninput = () => {
-            document.getElementById('v-pitch').innerText = p.value;
-            if (midiOut) midiOut.send([0xE0 + activeChan, 0, p.value]);
-        };
-        p.onmouseup = p.ontouchend = () => {
-            p.value = 64; document.getElementById('v-pitch').innerText = 64;
-            if (midiOut) midiOut.send([0xE0 + activeChan, 0, 64]);
-        };
-
-        function log(m) { document.getElementById('debug-box').innerText = "> " + m; }
-        document.getElementById('btn-init').onclick = initMidi;
-        document.getElementById('btn-panic').onclick = () => {
-            if (midiOut) midiOut.send([0xB0 + activeChan, 123, 0]);
-        };
-
-        updateLayout('virus');
-    </script>
-</body>
-</html>
+                            midiOut.send([0xB0 + active
