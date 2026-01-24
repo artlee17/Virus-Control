@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>MIDI Controller</title>
+<title>Virus MIDI Controller</title>
 <style>
   body { background-color: #111; color: #eee; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; }
   #header { background-color: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
@@ -31,9 +31,19 @@
       <span id="pitch-val">64</span>
     </div>
     <div class="fader-container">
-      <label>Mod</label>
+      <label>Mod W</label>
       <input type="range" min="0" max="127" value="0" id="mod-fader">
       <span id="mod-val">0</span>
+    </div>
+    <div class="fader-container">
+      <label>Rel</label>
+      <input type="range" min="0" max="127" value="0" id="rel-fader">
+      <span id="rel-val">0</span>
+    </div>
+    <div class="fader-container">
+      <label>Mod K</label>
+      <input type="range" min="0" max="127" value="0" id="modk-fader">
+      <span id="modk-val">0</span>
     </div>
   </div>
 
@@ -77,39 +87,4 @@ async function initMIDI() {
 }
 
 function sendCC(cc, value) {
-  if (midiOutput) {
-    midiOutput.send([0xB0, cc, value]);
-    log("Sent CC " + cc + ": " + value);
-  }
-}
-
-document.getElementById('mod-fader').addEventListener('input', (e) => {
-  const val = parseInt(e.target.value);
-  document.getElementById('mod-val').innerText = val;
-  sendCC(1, val);
-});
-
-const pf = document.getElementById('pitch-fader');
-pf.addEventListener('input', (e) => {
-  const val = parseInt(e.target.value);
-  document.getElementById('pitch-val').innerText = val;
-  if (midiOutput) midiOutput.send([0xE0, 0, val]);
-});
-
-pf.addEventListener('touchend', () => {
-  pf.value = 64;
-  document.getElementById('pitch-val').innerText = 64;
-  if (midiOutput) midiOutput.send([0xE0, 0, 64]);
-});
-
-function toggleFS() {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen();
-  } else {
-    document.exitFullscreen();
-  }
-}
-</script>
-
-</body>
-</html>
+  if (midi
