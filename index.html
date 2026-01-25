@@ -35,7 +35,7 @@
         .grid { display: none; grid-template-columns: repeat(3, 1fr); gap: 6px; padding-bottom: 60px; }
         .grid.active { display: grid; }
         
-        .pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 12px; font-weight: 700; height: 55px; cursor: pointer; border-bottom: 4px solid #000; }
+        .pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 11px; font-weight: 700; height: 55px; cursor: pointer; border-bottom: 4px solid #000; padding: 2px; }
         .pad.selected { background: var(--accent); color: #000; border-bottom: 0px; transform: translateY(3px); }
 
         #debug { background: #000; color: #0f0; font-family: monospace; font-size: 10px; padding: 5px 20px; border-top: 1px solid #333; height: 30px; }
@@ -94,9 +94,21 @@
                 <button class="pad" onclick="sCC(27,19,this)">Space Brass</button>
                 <button class="pad" onclick="sCC(27,20,this)">Crystal</button>
             </div>
+            
             <div id="grid-a" class="grid">
-                <button class="pad" style="grid-column: span 3; height: 100px;" onclick="sPC(0,this)">Test 0 (PC 0)</button>
-                <button class="pad" style="grid-column: span 3; height: 100px;" onclick="sPC(1,this)">Test 1 (PC 1)</button>
+                <button class="pad" onclick="sPC(1,this)">Cinema Strings</button>
+                <button class="pad" onclick="sPC(2,this)">American Grand</button>
+                <button class="pad" onclick="sPC(3,this)">Sci-fi Strings</button>
+                <button class="pad" onclick="sPC(4,this)">Voices & Strings</button>
+                <button class="pad" onclick="sPC(5,this)">Pluton</button>
+                <button class="pad" onclick="sPC(6,this)">Storm</button>
+                <button class="pad" onclick="sPC(7,this)">Dune</button>
+                <button class="pad" onclick="sPC(8,this)">Awakening</button>
+                <button class="pad" onclick="sPC(9,this)">Golden Fields</button>
+                <button class="pad" onclick="sPC(10,this)">Lost Bells</button>
+                <button class="pad" onclick="sPC(11,this)">Other Worlds</button>
+                <button class="pad" onclick="sPC(12,this)">Post-Apocalypse</button>
+                <button class="pad" onclick="sPC(13,this)">The Thing Bass Seq</button>
             </div>
         </div>
     </div>
@@ -113,7 +125,7 @@
             document.querySelectorAll('.grid').forEach(g => g.classList.remove('active'));
             
             if (p === 'v') {
-                chan = 2; // Channel 3
+                chan = 2;
                 body.classList.remove('theme-lab');
                 document.getElementById('tab-v').classList.add('active');
                 document.getElementById('grid-v').classList.add('active');
@@ -125,7 +137,7 @@
                 body.classList.add('theme-lab');
                 document.getElementById('tab-a').classList.add('active');
                 document.getElementById('grid-a').classList.add('active');
-                document.getElementById('lbl-1').innerText = "1";
+                document.getElementById('lbl-1').innerText = "Mod";
                 document.getElementById('lbl-2').innerText = "2";
                 document.getElementById('lbl-3').innerText = "3";
             }
@@ -160,9 +172,10 @@
         }
 
         function sPC(val, btn) {
-            document.querySelectorAll('.pad').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
             if (midi) midi.send([0xC0 + chan, val]);
+            document.getElementById('debug').innerText = "> PC Sent: " + val + " on CH " + (chan + 1);
         }
 
         const p = document.getElementById('pitch');
