@@ -92,4 +92,94 @@
                 <button class="pad" onclick="sCC(27,17,this)">NinthHvn</button>
                 <button class="pad" onclick="sCC(27,18,this)">I Made This</button>
                 <button class="pad" onclick="sCC(27,19,this)">Space Brass</button>
-                <button class="pad" onclick="sCC(
+                <button class="pad" onclick="sCC(27,20,this)">Crystal</button>
+            </div>
+            <div id="grid-a" class="grid">
+                <button class="pad" style="grid-column: span 3; height: 100px;" onclick="sPC(0,this)">Test 0 (PC 0)</button>
+                <button class="pad" style="grid-column: span 3; height: 100px;" onclick="sPC(1,this)">Test 1 (PC 1)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="debug">> Ready.</div>
+
+    <script>
+        let midi = null;
+        let chan = 2; // Viper on Channel 3
+        const body = document.getElementById('app-body');
+
+        function setPage(p) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.grid').forEach(g => g.classList.remove('active'));
+            
+            if (p === 'v') {
+                chan = 2; // Channel 3
+                body.classList.remove('theme-lab');
+                document.getElementById('tab-v').classList.add('active');
+                document.getElementById('grid-v').classList.add('active');
+                document.getElementById('lbl-1').innerText = "Mod W";
+                document.getElementById('lbl-2').innerText = "Rel";
+                document.getElementById('lbl-3').innerText = "Mod K";
+            } else {
+                chan = 0; // Channel 1
+                body.classList.add('theme-lab');
+                document.getElementById('tab-a').classList.add('active');
+                document.getElementById('grid-a').classList.add('active');
+                document.getElementById('lbl-1').innerText = "1";
+                document.getElementById('lbl-2').innerText = "2";
+                document.getElementById('lbl-3').innerText = "3";
+            }
+        }
+
+        async function init() {
+            try {
+                const access = await navigator.requestMIDIAccess({ sysex: true });
+                const outputs = Array.from(access.outputs.values());
+                const sel = document.getElementById('midi-select');
+                sel.innerHTML = '';
+                outputs.forEach((out, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = i; opt.innerText = out.name;
+                    sel.appendChild(opt);
+                });
+                sel.onchange = (e) => { midi = outputs[e.target.value]; };
+                midi = outputs[0];
+                if(midi) document.getElementById('debug').innerText = "> Connected: " + midi.name;
+            } catch (err) { document.getElementById('debug').innerText = "> Error: " + err.message; }
+        }
+
+        function upd(cc, val, id) {
+            document.getElementById(id).innerText = val;
+            if (midi) midi.send([0xB0 + chan, cc, val]);
+        }
+
+        function sCC(cc, val, btn) {
+            document.querySelectorAll('.pad').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            if (midi) midi.send([0xB0 + chan, cc, val]);
+        }
+
+        function sPC(val, btn) {
+            document.querySelectorAll('.pad').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            if (midi) midi.send([0xC0 + chan, val]);
+        }
+
+        const p = document.getElementById('pitch');
+        p.oninput = () => {
+            document.getElementById('v-p').innerText = p.value;
+            if (midi) midi.send([0xE0 + chan, 0, p.value]);
+        };
+        p.onmouseup = p.ontouchend = () => {
+            p.value = 64; document.getElementById('v-p').innerText = 64;
+            if (midi) midi.send([0xE0 + chan, 0, 64]);
+        };
+
+        document.getElementById('btn-init').onclick = init;
+        document.getElementById('btn-fs').onclick = () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        };
+    </script>
+</body>
+</html>
