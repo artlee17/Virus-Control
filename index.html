@@ -7,54 +7,41 @@
     <style>
         :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
         .theme-lab { --accent: #a044ff; }
-        
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
         .setup-bar { background: #222; padding: 5px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; }
         .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; }
         .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-weight: bold; color: #666; font-size: 13px; text-transform: uppercase; }
         .tab.active { background: var(--panel); color: var(--accent); border-bottom: 3px solid var(--accent); }
-
         .btn-h { border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px; color: white; background: #444; }
         select { background: #333; color: white; border: 1px solid #555; padding: 6px; border-radius: 4px; flex-grow: 1; margin: 0 10px; max-width: 150px; }
-        
         .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; overflow: hidden; }
-        
         .fader-section { width: 38%; background: var(--panel); border-radius: 12px; padding: 10px; border: 1px solid #333; display: flex; flex-direction: column; }
-        .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; margin-bottom: 5px; }
-        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
+        .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; margin-bottom: 5px; min-height: 0; }
+        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; }
         .fader-label { color: #888; font-size: 9px; text-transform: uppercase; font-weight: bold; text-align: center; }
-        
         input[type=range][orient=vertical] { appearance: slider-vertical; width: 32px; height: 80%; background: #333; accent-color: var(--accent); }
         .macro-container { border-top: 1px solid #333; padding-top: 8px; text-align: center; }
         input[id=macro] { width: 90%; height: 20px; accent-color: var(--accent); }
-        
         .val-box { color: var(--accent); font-family: monospace; font-size: 11px; background: #000; padding: 2px 5px; border-radius: 4px; border: 1px solid #333; }
-
         .scroll-wrapper { width: 62%; height: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
         .grid { display: none; grid-template-columns: repeat(3, 1fr); gap: 6px; padding-bottom: 60px; }
         .grid.active { display: grid; }
-        
-        .pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 11px; font-weight: 700; height: 55px; cursor: pointer; border-bottom: 4px solid #000; padding: 2px; }
-        .pad.selected { background: var(--accent); color: #000; border-bottom: 0px; transform: translateY(3px); }
-
+        .midi-pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 10px; font-weight: 700; height: 55px; cursor: pointer; border-bottom: 4px solid #000; padding: 2px; }
+        .midi-pad.selected { background: var(--accent); color: #000; border-bottom: 0px; transform: translateY(3px); }
         #debug { background: #000; color: #0f0; font-family: monospace; font-size: 10px; padding: 5px 20px; border-top: 1px solid #333; height: 30px; }
     </style>
 </head>
 <body id="app-body" class="v-mode">
-
     <div class="setup-bar">
         <button id="btn-init" class="btn-h" style="background:var(--accent); color:#000">INIT MIDI</button>
         <select id="midi-select"><option>Port...</option></select>
         <button id="btn-fs" class="btn-h">FS</button>
         <button id="btn-panic" class="btn-h" style="background:#900">PANIC</button>
     </div>
-
     <div class="tabs">
         <div id="tab-v" class="tab active" onclick="setPage('v')">Viper</div>
         <div id="tab-a" class="tab" onclick="setPage('a')">Analog Lab</div>
     </div>
-
     <div class="main-container">
         <div class="fader-section">
             <div class="v-fader-row">
@@ -69,78 +56,42 @@
                 <div class="val-box" id="vm">0</div>
             </div>
         </div>
-
         <div class="scroll-wrapper">
-            <div id="grid-v" class="grid active">
-                <button class="pad" onclick="sCC(27,0,this)">A1 First</button>
-                <button class="pad" onclick="sCC(27,1,this)">B74 Short</button>
-                <button class="pad" onclick="sCC(27,2,this)">B74 Long</button>
-                <button class="pad" onclick="sCC(27,3,this)">B3</button>
-                <button class="pad" onclick="sCC(27,4,this)">Indigo A84</button>
-                <button class="pad" onclick="sCC(27,5,this)">Virus A18</button>
-                <button class="pad" onclick="sCC(27,6,this)">Piano</button>
-                <button class="pad" onclick="sCC(27,7,this)">Movie Str</button>
-                <button class="pad" onclick="sCC(27,8,this)">Organ Int</button>
-                <button class="pad" onclick="sCC(27,9,this)">Atmo Real</button>
-                <button class="pad" onclick="sCC(27,10,this)">Pad Exp</button>
-                <button class="pad" onclick="sCC(27,11,this)">Outer W</button>
-                <button class="pad" onclick="sCC(27,12,this)">Stellar</button>
-                <button class="pad" onclick="sCC(27,13,this)">Man Steel</button>
-                <button class="pad" onclick="sCC(27,14,this)">Braaam</button>
-                <button class="pad" onclick="sCC(27,15,this)">Drone</button>
-                <button class="pad" onclick="sCC(27,16,this)">Cinematic</button>
-                <button class="pad" onclick="sCC(27,17,this)">NinthHvn</button>
-                <button class="pad" onclick="sCC(27,18,this)">I Made This</button>
-                <button class="pad" onclick="sCC(27,19,this)">Space Brass</button>
-                <button class="pad" onclick="sCC(27,20,this)">Crystal</button>
-            </div>
-            
-            <div id="grid-a" class="grid">
-                <button class="pad" onclick="sPC(1,this)">Cinema Strings</button>
-                <button class="pad" onclick="sPC(2,this)">American Grand</button>
-                <button class="pad" onclick="sPC(3,this)">Sci-fi Strings</button>
-                <button class="pad" onclick="sPC(4,this)">Voices & Strings</button>
-                <button class="pad" onclick="sPC(5,this)">Pluton</button>
-                <button class="pad" onclick="sPC(6,this)">Storm</button>
-                <button class="pad" onclick="sPC(7,this)">Dune</button>
-                <button class="pad" onclick="sPC(8,this)">Awakening</button>
-                <button class="pad" onclick="sPC(9,this)">Golden Fields</button>
-                <button class="pad" onclick="sPC(10,this)">Lost Bells</button>
-                <button class="pad" onclick="sPC(11,this)">Other Worlds</button>
-                <button class="pad" onclick="sPC(12,this)">Post-Apocalypse</button>
-                <button class="pad" onclick="sPC(13,this)">The Thing Bass Seq</button>
-            </div>
+            <div id="grid-v" class="grid active"></div>
+            <div id="grid-a" class="grid"></div>
         </div>
     </div>
-
     <div id="debug">> Ready.</div>
 
     <script>
         let midi = null;
-        let chan = 2; // Viper on Channel 3
+        let chan = 2; // Viper CH3
         const body = document.getElementById('app-body');
+        const log = (m) => document.getElementById('debug').innerText = "> " + m;
+
+        const viperPresets = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
+        const labPresets = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
 
         function setPage(p) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.grid').forEach(g => g.classList.remove('active'));
-            
             if (p === 'v') {
-                chan = 2;
-                body.classList.remove('theme-lab');
+                chan = 2; body.classList.remove('theme-lab');
                 document.getElementById('tab-v').classList.add('active');
                 document.getElementById('grid-v').classList.add('active');
-                document.getElementById('lbl-1').innerText = "Mod W";
-                document.getElementById('lbl-2').innerText = "Rel";
-                document.getElementById('lbl-3').innerText = "Mod K";
+                setL("Mod W", "Rel", "Mod K");
             } else {
-                chan = 0; // Channel 1
-                body.classList.add('theme-lab');
+                chan = 0; body.classList.add('theme-lab');
                 document.getElementById('tab-a').classList.add('active');
                 document.getElementById('grid-a').classList.add('active');
-                document.getElementById('lbl-1').innerText = "Mod";
-                document.getElementById('lbl-2').innerText = "2";
-                document.getElementById('lbl-3').innerText = "3";
+                setL("Mod", "2", "3");
             }
+        }
+
+        function setL(l1, l2, l3) {
+            document.getElementById('lbl-1').innerText = l1;
+            document.getElementById('lbl-2').innerText = l2;
+            document.getElementById('lbl-3').innerText = l3;
         }
 
         async function init() {
@@ -154,10 +105,10 @@
                     opt.value = i; opt.innerText = out.name;
                     sel.appendChild(opt);
                 });
-                sel.onchange = (e) => { midi = outputs[e.target.value]; };
+                sel.onchange = (e) => { midi = outputs[e.target.value]; log("Selected: " + midi.name); };
                 midi = outputs[0];
-                if(midi) document.getElementById('debug').innerText = "> Connected: " + midi.name;
-            } catch (err) { document.getElementById('debug').innerText = "> Error: " + err.message; }
+                if(midi) log("Connected: " + midi.name);
+            } catch (err) { log("Error: " + err.message); }
         }
 
         function upd(cc, val, id) {
@@ -165,17 +116,21 @@
             if (midi) midi.send([0xB0 + chan, cc, val]);
         }
 
-        function sCC(cc, val, btn) {
-            document.querySelectorAll('.pad').forEach(b => b.classList.remove('selected'));
+        function sMsg(type, val, btn) {
+            // Find the active grid container and only clear buttons within it
+            const currentGrid = btn.parentElement;
+            currentGrid.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
+            
             btn.classList.add('selected');
-            if (midi) midi.send([0xB0 + chan, cc, val]);
-        }
-
-        function sPC(val, btn) {
-            document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            if (midi) midi.send([0xC0 + chan, val]);
-            document.getElementById('debug').innerText = "> PC Sent: " + val + " on CH " + (chan + 1);
+            if (midi) {
+                if (type === 'cc') {
+                    midi.send([0xB0 + chan, 27, val]);
+                    log(`CH${chan+1} CC27 Val ${val}`);
+                } else {
+                    midi.send([0xC0 + chan, val]);
+                    log(`CH${chan+1} PC Val ${val}`);
+                }
+            }
         }
 
         const p = document.getElementById('pitch');
@@ -188,10 +143,30 @@
             if (midi) midi.send([0xE0 + chan, 0, 64]);
         };
 
+        const gV = document.getElementById('grid-v');
+        viperPresets.forEach((n, i) => {
+            const b = document.createElement('button');
+            b.className = 'midi-pad'; b.innerText = n;
+            b.onclick = () => sMsg('cc', i, b);
+            gV.appendChild(b);
+        });
+
+        const gA = document.getElementById('grid-a');
+        labPresets.forEach((n, i) => {
+            const b = document.createElement('button');
+            b.className = 'midi-pad'; b.innerText = n;
+            b.onclick = () => sMsg('pc', i + 1, b);
+            gA.appendChild(b);
+        });
+
         document.getElementById('btn-init').onclick = init;
         document.getElementById('btn-fs').onclick = () => {
             if (!document.fullscreenElement) document.documentElement.requestFullscreen();
             else document.exitFullscreen();
+        };
+        document.getElementById('btn-panic').onclick = () => {
+            if (midi) midi.send([0xB0 + chan, 123, 0]);
+            log("Panic Sent.");
         };
     </script>
 </body>
