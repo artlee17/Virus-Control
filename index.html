@@ -3,184 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MIDI Controller Master</title>
-    
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#0d0d0d">
-
+    <title>MIDI Master</title>
     <style>
-        :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; --panic: #ff3333; }
+        :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
         .theme-lab { --accent: #a044ff; }
         
-        body { 
-            background: var(--bg); color: white; font-family: 'Inter', sans-serif; 
-            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
-        }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Header & Tabs */
-        .setup-bar { background: #222; padding: 5px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; gap: 8px; flex-shrink: 0; }
+        .setup-bar { background: #222; padding: 5px 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; }
         .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; }
         .tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-weight: bold; color: #666; font-size: 13px; text-transform: uppercase; }
         .tab.active { background: var(--panel); color: var(--accent); border-bottom: 3px solid var(--accent); }
 
-        select { background: #333; color: white; border: 1px solid #555; padding: 6px; border-radius: 4px; flex-grow: 1; max-width: 150px; font-size: 12px; }
-        .btn-header { border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px; }
-        #btn-init { background: var(--accent); color: #000; }
-        #btn-panic { background: var(--panic); color: #fff; }
+        .btn-h { border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 10px; color: white; background: #444; }
+        select { background: #333; color: white; border: 1px solid #555; padding: 6px; border-radius: 4px; flex-grow: 1; margin: 0 10px; max-width: 150px; }
         
-        .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; height: calc(100vh - 140px); min-height: 0; }
+        .main-container { display: flex; flex: 1; padding: 10px; gap: 15px; overflow: hidden; }
         
-        /* Fader Section */
-        .fader-section { display: flex; flex-direction: column; flex: 0.35; background: var(--panel); border-radius: 12px; padding: 10px; border: 1px solid #333; gap: 5px; }
-        .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; padding-bottom: 5px; min-height: 0; }
-        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 24%; }
-        .fader-label { color: #888; font-size: 9px; text-transform: uppercase; text-align: center; font-weight: bold; }
+        .fader-section { width: 38%; background: var(--panel); border-radius: 12px; padding: 10px; border: 1px solid #333; display: flex; flex-direction: column; }
+        .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; margin-bottom: 5px; }
+        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
+        .fader-label { color: #888; font-size: 9px; text-transform: uppercase; font-weight: bold; text-align: center; }
         
-        input[type=range][orient=vertical] { appearance: slider-vertical; width: 35px; height: 100%; background: #333; border-radius: 10px; outline: none; margin: 5px 0; accent-color: var(--accent); }
+        input[type=range][orient=vertical] { appearance: slider-vertical; width: 32px; height: 80%; background: #333; accent-color: var(--accent); }
+        .macro-container { border-top: 1px solid #333; padding-top: 8px; text-align: center; }
+        input[id=macro] { width: 90%; height: 20px; accent-color: var(--accent); }
         
-        .macro-container { flex-shrink: 0; border-top: 1px solid #333; padding-top: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        input[id=macro-slider] { appearance: none; width: 90%; height: 10px; background: #333; border-radius: 5px; outline: none; accent-color: var(--accent); }
-        
-        .val-indicator { color: var(--accent); font-family: monospace; font-size: 11px; font-weight: bold; background: #000; padding: 1px 5px; border-radius: 3px; }
+        .val-box { color: var(--accent); font-family: monospace; font-size: 11px; background: #000; padding: 2px 5px; border-radius: 4px; border: 1px solid #333; }
 
-        /* Button Section */
-        .button-section { flex: 0.65; display: none; grid-template-columns: repeat(3, 1fr); gap: 6px; overflow-y: auto; padding-right: 5px; }
-        .button-section.active { display: grid; }
+        .scroll-wrapper { width: 62%; height: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; }
+        .grid { display: none; grid-template-columns: repeat(3, 1fr); gap: 6px; padding-bottom: 60px; }
+        .grid.active { display: grid; }
         
-        .midi-pad { 
-            background: #252525; border: none; border-radius: 8px; color: #bbb; 
-            font-size: 14px; font-weight: 700; height: 55px; cursor: pointer;
-            border-bottom: 4px solid #000; transition: all 0.1s ease;
-        }
-        .midi-pad.selected { background: var(--accent); color: #000; border-bottom: 0px; transform: translateY(3px); }
+        .pad { background: #252525; border: none; border-radius: 8px; color: #bbb; font-size: 12px; font-weight: 700; height: 55px; cursor: pointer; border-bottom: 4px solid #000; }
+        .pad.selected { background: var(--accent); color: #000; border-bottom: 0px; transform: translateY(3px); }
 
-        #debug-box { background: #000; color: #0f0; font-family: monospace; font-size: 11px; height: 35px; padding: 5px 20px; border-top: 1px solid #333; flex-shrink: 0; }
+        #debug { background: #000; color: #0f0; font-family: monospace; font-size: 10px; padding: 5px 20px; border-top: 1px solid #333; height: 30px; }
     </style>
 </head>
-<body id="app-body">
+<body id="app-body" class="v-mode">
 
     <div class="setup-bar">
-        <button id="btn-init" class="btn-header">INIT</button>
+        <button id="btn-init" class="btn-h" style="background:var(--accent); color:#000">INIT MIDI</button>
         <select id="midi-select"><option>Port...</option></select>
-        <button id="btn-fs" class="btn-header" style="background:#444; color:white">FULL</button>
-        <button id="btn-panic" class="btn-header">PANIC</button>
+        <button id="btn-fs" class="btn-h">FS</button>
+        <button id="btn-panic" class="btn-h" style="background:#900">PANIC</button>
     </div>
 
     <div class="tabs">
-        <div id="tab-v" class="tab active" onclick="switchPage('v')">Viper</div>
-        <div id="tab-a" class="tab" onclick="switchPage('a')">Analog Lab</div>
+        <div id="tab-v" class="tab active" onclick="setPage('v')">Viper</div>
+        <div id="tab-a" class="tab" onclick="setPage('a')">Analog Lab</div>
     </div>
 
     <div class="main-container">
         <div class="fader-section">
             <div class="v-fader-row">
-                <div class="fader-group"><div class="fader-label">Pitch</div><input type="range" id="pitch" orient="vertical" min="0" max="127" value="64"><div class="val-indicator" id="v-pitch">64</div></div>
-                <div class="fader-group"><div class="fader-label" id="lbl-f1">Mod W</div><input type="range" id="f1" orient="vertical" min="0" max="127" value="0" oninput="updFader(1, this.value, 'v1')"><div class="val-indicator" id="v1">0</div></div>
-                <div class="fader-group"><div class="fader-label" id="lbl-f2">Rel</div><input type="range" id="f2" orient="vertical" min="0" max="127" value="0" oninput="updFader(7, this.value, 'v2')"><div class="val-indicator" id="v2">0</div></div>
-                <div class="fader-group"><div class="fader-label" id="lbl-f3">Mod K</div><input type="range" id="f3" orient="vertical" min="0" max="127" value="0" oninput="updFader(30, this.value, 'v3')"><div class="val-indicator" id="v3">0</div></div>
+                <div class="fader-group"><div class="fader-label">Pitch</div><input type="range" id="pitch" orient="vertical" min="0" max="127" value="64"><div class="val-box" id="v-p">64</div></div>
+                <div class="fader-group"><div class="fader-label" id="lbl-1">Mod W</div><input type="range" id="f1" orient="vertical" min="0" max="127" value="0" oninput="upd(1, this.value, 'v1')"><div class="val-box" id="v1">0</div></div>
+                <div class="fader-group"><div class="fader-label" id="lbl-2">Rel</div><input type="range" id="f2" orient="vertical" min="0" max="127" value="0" oninput="upd(7, this.value, 'v2')"><div class="val-box" id="v2">0</div></div>
+                <div class="fader-group"><div class="fader-label" id="lbl-3">Mod K</div><input type="range" id="f3" orient="vertical" min="0" max="127" value="0" oninput="upd(30, this.value, 'v3')"><div class="val-box" id="v3">0</div></div>
             </div>
-            
             <div class="macro-container">
                 <div class="fader-label">Master (CC 20)</div>
-                <input type="range" id="macro-slider" min="0" max="64" value="0" oninput="updFader(20, this.value, 'v-macro')">
-                <div class="val-indicator" id="v-macro">0</div>
+                <input type="range" id="macro" min="0" max="64" value="0" oninput="upd(20, this.value, 'vm')">
+                <div class="val-box" id="vm">0</div>
             </div>
         </div>
-        
-        <div class="button-section active" id="grid-v"></div>
-        <div class="button-section" id="grid-a">
-            <button class="midi-pad" onclick="sendPC(0, this)">Test 0</button>
-            <button class="midi-pad" onclick="sendPC(1, this)">Test 1</button>
-        </div>
-    </div>
 
-    <div id="debug-box">> System Ready.</div>
-
-    <script>
-        let midiOut = null;
-        let activeChan = 2; // CH 3 (0xB2)
-        const body = document.getElementById('app-body');
-
-        function log(m) { document.getElementById('debug-box').innerText = "> " + m; }
-
-        const viperPresets = [
-            "A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A A18",
-            "Piano", "Movie Strings", "Organ Interstellar", "Atmo Reality", "Pad Expanse", "Pad Outer Worlds",
-            "Pad Stellar", "Atmo Man of Steel", "Braaam Riser", "Drone Analog", "Key Cinematic", "NinthHvn",
-            "I Made This", "Space Brass", "Crystal"
-        ];
-
-        function switchPage(page) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.button-section').forEach(g => g.classList.remove('active'));
-            
-            if (page === 'v') {
-                activeChan = 2; // CH 3
-                body.classList.remove('theme-lab');
-                document.getElementById('tab-v').classList.add('active');
-                document.getElementById('grid-v').classList.add('active');
-                setLabels("Mod W", "Rel", "Mod K");
-            } else {
-                activeChan = 0; // CH 1
-                body.classList.add('theme-lab');
-                document.getElementById('tab-a').classList.add('active');
-                document.getElementById('grid-a').classList.add('active');
-                setLabels("1", "2", "3");
-            }
-            log(`Switched to ${page === 'v' ? 'Viper (CH 3)' : 'Analog Lab (CH 1)'}`);
-        }
-
-        function setLabels(l1, l2, l3) {
-            document.getElementById('lbl-f1').innerText = l1;
-            document.getElementById('lbl-f2').innerText = l2;
-            document.getElementById('lbl-f3').innerText = l3;
-        }
-
-        async function initMidi() {
-            try {
-                const access = await navigator.requestMIDIAccess({ sysex: true });
-                const outputs = Array.from(access.outputs.values());
-                const sel = document.getElementById('midi-select');
-                sel.innerHTML = '';
-                outputs.forEach((out, i) => {
-                    const opt = document.createElement('option');
-                    opt.value = i; opt.innerText = out.name;
-                    sel.appendChild(opt);
-                });
-                sel.onchange = (e) => { midiOut = outputs[e.target.value]; };
-                midiOut = outputs[0];
-                if(midiOut) log("Active: " + midiOut.name);
-            } catch (err) { log("Error: " + err.message); }
-        }
-
-        function updFader(cc, val, dispId) {
-            document.getElementById(dispId).innerText = val;
-            if (midiOut) midiOut.send([0xB0 + activeChan, cc, val]);
-        }
-
-        function sendPC(pc, btn) {
-            document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            if (midiOut) midiOut.send([0xC0 + activeChan, pc]);
-            log(`PC Sent: ${pc} on CH ${activeChan + 1}`);
-        }
-
-        const p = document.getElementById('pitch');
-        p.oninput = () => {
-            document.getElementById('v-pitch').innerText = p.value;
-            if (midiOut) midiOut.send([0xE0 + activeChan, 0, p.value]);
-        };
-        p.onmouseup = p.ontouchend = () => {
-            p.value = 64; document.getElementById('v-pitch').innerText = 64;
-            if (midiOut) midiOut.send([0xE0 + activeChan, 0, 64]);
-        };
-
-        const gridV = document.getElementById('grid-v');
-        viperPresets.forEach((n, i) => {
-            const btn = document.createElement('button');
-            btn.className = 'midi-pad';
-            btn.innerText = n;
-            btn.onclick = () => {
-                document.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
+        <div class="scroll-wrapper">
+            <div id="grid-v" class="grid active">
+                <button class="pad" onclick="sCC(27,0,this)">A1 First</button>
+                <button class="pad" onclick="sCC(27,1,this)">B74 Short</button>
+                <button class="pad" onclick="sCC(27,2,this)">B74 Long</button>
+                <button class="pad" onclick="sCC(27,3,this)">B3</button>
+                <button class="pad" onclick="sCC(27,4,this)">Indigo A84</button>
+                <button class="pad" onclick="sCC(27,5,this)">Virus A18</button>
+                <button class="pad" onclick="sCC(27,6,this)">Piano</button>
+                <button class="pad" onclick="sCC(27,7,this)">Movie Str</button>
+                <button class="pad" onclick="sCC(27,8,this)">Organ Int</button>
+                <button class="pad" onclick="sCC(27,9,this)">Atmo Real</button>
+                <button class="pad" onclick="sCC(27,10,this)">Pad Exp</button>
+                <button class="pad" onclick="sCC(27,11,this)">Outer W</button>
+                <button class="pad" onclick="sCC(27,12,this)">Stellar</button>
+                <button class="pad" onclick="sCC(27,13,this)">Man Steel</button>
+                <button class="pad" onclick="sCC(27,14,this)">Braaam</button>
+                <button class="pad" onclick="sCC(27,15,this)">Drone</button>
+                <button class="pad" onclick="sCC(27,16,this)">Cinematic</button>
+                <button class="pad" onclick="sCC(27,17,this)">NinthHvn</button>
+                <button class="pad" onclick="sCC(27,18,this)">I Made This</button>
+                <button class="pad" onclick="sCC(27,19,this)">Space Brass</button>
+                <button class="pad" onclick="sCC(
