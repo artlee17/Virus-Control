@@ -10,7 +10,6 @@
         
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Layout Bars */
         .setup-bar { background: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; height: 50px; box-sizing: border-box; }
         .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; height: 55px; }
         .tab { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; color: #666; font-size: 16px; text-transform: uppercase; }
@@ -21,7 +20,6 @@
         
         .main-container { display: flex; flex: 1; padding: 12px; gap: 15px; overflow: hidden; }
         
-        /* Fader Section - Slightly wider for tablet */
         .fader-section { width: 35%; background: var(--panel); border-radius: 15px; padding: 15px; border: 1px solid #333; display: flex; flex-direction: column; box-sizing: border-box; }
         .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; margin-bottom: 10px; min-height: 0; }
         .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; }
@@ -34,7 +32,6 @@
         
         .val-box { color: var(--accent); font-family: monospace; font-size: 14px; background: #000; padding: 4px 8px; border-radius: 5px; border: 1px solid #333; margin-top: 5px; }
 
-        /* Button Grid - 2 Columns for Huge Targets */
         .scroll-wrapper { width: 65%; height: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; padding-right: 5px; }
         .grid { display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; padding-bottom: 80px; }
         .grid.active { display: grid; }
@@ -89,27 +86,59 @@
 
     <script>
         let midi = null;
-        let chan = 2; // Viper CH3
-        const body = document.getElementById('app-body');
-        const log = (m) => document.getElementById('debug').innerText = "> " + m;
+        let activeTab = 'v';
+        let wakeLock = null;
+
+        // Separate states for each tab
+        const states = {
+            v: { chan: 2, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 64 },
+            a: { chan: 0, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 127 }
+        };
 
         const viperPresets = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
         const labPresets = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
 
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    document.getElementById('debug').innerText = "> Screen Wake Active.";
+                }
+            } catch (err) { console.error(`${err.name}, ${err.message}`); }
+        }
+
         function setPage(p) {
+            activeTab = p;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.grid').forEach(g => g.classList.remove('active'));
+            
+            const body = document.getElementById('app-body');
+            const macroInput = document.getElementById('macro');
+
             if (p === 'v') {
-                chan = 2; body.classList.remove('theme-lab');
+                body.classList.remove('theme-lab');
                 document.getElementById('tab-v').classList.add('active');
                 document.getElementById('grid-v').classList.add('active');
                 setL("Mod W", "Rel", "Mod K");
             } else {
-                chan = 0; body.classList.add('theme-lab');
+                body.classList.add('theme-lab');
                 document.getElementById('tab-a').classList.add('active');
                 document.getElementById('grid-a').classList.add('active');
                 setL("Mod", "2", "3");
             }
+
+            // Apply saved state for the current tab to the UI
+            macroInput.max = states[p].maxMacro;
+            macroInput.value = states[p].macro;
+            document.getElementById('vm').innerText = states[p].macro;
+            document.getElementById('f1').value = states[p].f1;
+            document.getElementById('v1').innerText = states[p].f1;
+            document.getElementById('f2').value = states[p].f2;
+            document.getElementById('v2').innerText = states[p].f2;
+            document.getElementById('f3').value = states[p].f3;
+            document.getElementById('v3').innerText = states[p].f3;
+            document.getElementById('pitch').value = states[p].pitch;
+            document.getElementById('v-p').innerText = states[p].pitch;
         }
 
         function setL(l1, l2, l3) {
@@ -119,6 +148,7 @@
         }
 
         async function init() {
+            requestWakeLock();
             try {
                 const access = await navigator.requestMIDIAccess({ sysex: true });
                 const outputs = Array.from(access.outputs.values());
@@ -129,39 +159,47 @@
                     opt.value = i; opt.innerText = out.name;
                     sel.appendChild(opt);
                 });
-                sel.onchange = (e) => { midi = outputs[e.target.value]; log("Selected: " + midi.name); };
+                sel.onchange = (e) => { midi = outputs[e.target.value]; };
                 midi = outputs[0];
-                if(midi) log("Connected: " + midi.name);
-            } catch (err) { log("Error: " + err.message); }
+                if(midi) document.getElementById('debug').innerText = "> Connected: " + midi.name;
+            } catch (err) { document.getElementById('debug').innerText = "> Error: " + err.message; }
         }
 
         function upd(cc, val, id) {
             document.getElementById(id).innerText = val;
-            if (midi) midi.send([0xB0 + chan, cc, val]);
+            const s = states[activeTab];
+            // Save state based on CC
+            if (cc === 1) s.f1 = val;
+            if (cc === 7) s.f2 = val;
+            if (cc === 30) s.f3 = val;
+            if (cc === 20) s.macro = val;
+
+            if (midi) midi.send([0xB0 + s.chan, cc, val]);
         }
 
         function sMsg(type, val, btn) {
             const currentGrid = btn.parentElement;
             currentGrid.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
+            const s = states[activeTab];
             if (midi) {
-                if (type === 'cc') {
-                    midi.send([0xB0 + chan, 27, val]);
-                } else {
-                    midi.send([0xC0 + chan, val]);
-                }
-                log(`Sent ${type.toUpperCase()} ${val} (CH ${chan+1})`);
+                if (type === 'cc') midi.send([0xB0 + s.chan, 27, val]);
+                else midi.send([0xC0 + s.chan, val]);
             }
         }
 
         const p = document.getElementById('pitch');
         p.oninput = () => {
-            document.getElementById('v-p').innerText = p.value;
-            if (midi) midi.send([0xE0 + chan, 0, p.value]);
+            const val = p.value;
+            document.getElementById('v-p').innerText = val;
+            states[activeTab].pitch = val;
+            if (midi) midi.send([0xE0 + states[activeTab].chan, 0, val]);
         };
         p.onmouseup = p.ontouchend = () => {
-            p.value = 64; document.getElementById('v-p').innerText = 64;
-            if (midi) midi.send([0xE0 + chan, 0, 64]);
+            p.value = 64; 
+            document.getElementById('v-p').innerText = 64;
+            states[activeTab].pitch = 64;
+            if (midi) midi.send([0xE0 + states[activeTab].chan, 0, 64]);
         };
 
         const gV = document.getElementById('grid-v');
@@ -186,9 +224,13 @@
             else document.exitFullscreen();
         };
         document.getElementById('btn-panic').onclick = () => {
-            if (midi) midi.send([0xB0 + chan, 123, 0]);
-            log("Panic Sent.");
+            if (midi) midi.send([0xB0 + states[activeTab].chan, 123, 0]);
         };
+
+        // Re-request wake lock if tab becomes visible again
+        document.addEventListener('visibilitychange', () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
+        });
     </script>
 </body>
 </html>
