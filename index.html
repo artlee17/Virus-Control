@@ -3,44 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virus Master Pro</title>
-    
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="data:application/manifest+json,{'name':'VirusMaster','short_name':'Virus','start_url':'.','display':'standalone','orientation':'landscape'}">
-
+    <title>MIDI Master Tablet</title>
     <style>
         :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
         .theme-lab { --accent: #a044ff; }
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .setup-bar { background: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; height: 50px; }
+        
+        .setup-bar { background: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; height: 60px; box-sizing: border-box; }
         .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; height: 55px; }
         .tab { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; color: #666; font-size: 16px; text-transform: uppercase; }
         .tab.active { background: var(--panel); color: var(--accent); border-bottom: 4px solid var(--accent); }
-        .btn-h { border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; color: white; background: #444; }
-        select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 6px; flex-grow: 1; margin: 0 15px; max-width: 200px; font-size: 14px; }
+
+        .btn-h { border: none; padding: 12px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; color: white; background: #444; }
+        #btn-init { background: var(--accent); color: #000; }
+        select { background: #333; color: white; border: 1px solid #555; padding: 10px; border-radius: 6px; flex-grow: 1; margin: 0 15px; max-width: 250px; font-size: 14px; }
+        
         .main-container { display: flex; flex: 1; padding: 12px; gap: 15px; overflow: hidden; }
-        .fader-section { width: 35%; background: var(--panel); border-radius: 15px; padding: 15px; border: 1px solid #333; display: flex; flex-direction: column; }
+        
+        .fader-section { width: 35%; background: var(--panel); border-radius: 15px; padding: 15px; border: 1px solid #333; display: flex; flex-direction: column; box-sizing: border-box; }
         .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; margin-bottom: 10px; min-height: 0; }
         .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; }
         .fader-label { color: #888; font-size: 11px; text-transform: uppercase; font-weight: bold; }
+        
         input[type=range][orient=vertical] { appearance: slider-vertical; width: 45px; height: 80%; background: #333; accent-color: var(--accent); }
         .macro-container { border-top: 2px solid #333; padding-top: 15px; text-align: center; }
         input[id=macro] { width: 95%; height: 35px; accent-color: var(--accent); }
         .val-box { color: var(--accent); font-family: monospace; font-size: 14px; background: #000; padding: 4px 8px; border-radius: 5px; border: 1px solid #333; margin-top: 5px; }
+
         .scroll-wrapper { width: 65%; height: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; padding-right: 5px; }
         .grid { display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; padding-bottom: 80px; }
         .grid.active { display: grid; }
-        .midi-pad { background: #252525; border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 700; height: 85px; cursor: pointer; border-bottom: 5px solid #000; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .midi-pad { background: #252525; border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 700; height: 90px; cursor: pointer; border-bottom: 5px solid #000; display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px; }
         .midi-pad.selected { background: var(--accent); color: #000; border-bottom: 0px; transform: translateY(4px); }
+
         #debug { background: #000; color: #0f0; font-family: monospace; font-size: 12px; padding: 8px 20px; border-top: 1px solid #333; height: 35px; flex-shrink: 0; }
     </style>
 </head>
 <body id="app-body" class="v-mode">
 
     <div class="setup-bar">
-        <button id="btn-init" class="btn-h" style="background:var(--accent); color:#000">INIT MIDI</button>
-        <select id="midi-select"><option>Port...</option></select>
-        <button id="btn-fs" class="btn-h">FS</button>
+        <button id="btn-init" class="btn-h">INIT MIDI</button>
+        <select id="midi-select"><option>Select PC Port...</option></select>
+        <button id="btn-fs" class="btn-h">FULLSCREEN</button>
         <button id="btn-panic" class="btn-h" style="background:#900">PANIC</button>
     </div>
 
@@ -66,16 +70,9 @@
         <div class="scroll-wrapper"><div id="grid-v" class="grid active"></div><div id="grid-a" class="grid"></div></div>
     </div>
 
-    <div id="debug">> Press INIT (App Mode)</div>
+    <div id="debug">> Tablet Ready. Tap INIT MIDI.</div>
 
     <script>
-        // Simple Service Worker to enable PWA installation
-        if ('serviceWorker' in navigator) {
-            const code = `self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request)));`;
-            const blob = new Blob([code], {type: 'text/javascript'});
-            navigator.serviceWorker.register(URL.createObjectURL(blob));
-        }
-
         let midi = null; let activeTab = 'v'; let wakeLock = null;
         const states = {
             v: { chan: 2, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 64 },
@@ -85,23 +82,45 @@
         const vP = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
         const lP = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
 
+        // FORCE FULLSCREEN FIX
+        document.getElementById('btn-fs').onclick = () => {
+            const doc = document.documentElement;
+            if (!document.fullscreenElement) {
+                doc.requestFullscreen().catch(err => {
+                    document.getElementById('debug').innerText = "> FS Error: Tap screen first";
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        };
+
         async function init() {
             try {
+                // Requesting sysex often forces the permission pop-up on Android
                 const access = await navigator.requestMIDIAccess({ sysex: true });
                 const outputs = Array.from(access.outputs.values());
                 const sel = document.getElementById('midi-select');
                 sel.innerHTML = '';
+                
                 outputs.forEach((out, i) => {
                     const opt = document.createElement('option');
                     opt.value = i; opt.innerText = out.name;
                     sel.appendChild(opt);
                 });
-                sel.onchange = (e) => { midi = outputs[e.target.value]; };
+
+                sel.onchange = (e) => { 
+                    midi = outputs[e.target.value];
+                    document.getElementById('debug').innerText = "> Active: " + midi.name;
+                };
+
                 midi = outputs[0];
-                if(midi) document.getElementById('debug').innerText = "> LIVE: " + midi.name;
+                if(midi) document.getElementById('debug').innerText = "> Connected: " + midi.name;
+                
                 if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
                 bind();
-            } catch (err) { document.getElementById('debug').innerText = "> PWA Permission Required."; }
+            } catch (err) { 
+                document.getElementById('debug').innerText = "> MIDI Blocked. Check Site Settings."; 
+            }
         }
 
         function bind() {
@@ -131,6 +150,7 @@
             document.querySelectorAll('.grid').forEach(g => g.classList.remove('active'));
             const b = document.getElementById('app-body');
             const mI = document.getElementById('macro');
+            
             if (p === 'v') {
                 b.classList.remove('theme-lab');
                 document.getElementById('tab-v').classList.add('active');
@@ -142,6 +162,7 @@
                 document.getElementById('grid-a').classList.add('active');
                 document.getElementById('lbl-1').innerText = "Mod"; document.getElementById('lbl-2').innerText = "2"; document.getElementById('lbl-3').innerText = "3";
             }
+            
             mI.max = states[p].maxMacro; mI.value = states[p].macro;
             document.getElementById('vm').innerText = states[p].macro;
             document.getElementById('f1').value = states[p].f1; document.getElementById('v1').innerText = states[p].f1;
