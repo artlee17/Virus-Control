@@ -3,30 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MIDI Master Tablet</title>
+    <title>Virus Master Pro</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="data:application/manifest+json,{'name':'VirusMaster','short_name':'Virus','start_url':'.','display':'standalone','orientation':'landscape'}">
+
     <style>
         :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
         .theme-lab { --accent: #a044ff; }
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .setup-bar { background: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; height: 50px; box-sizing: border-box; }
+        .setup-bar { background: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; height: 50px; }
         .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; height: 55px; }
         .tab { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; color: #666; font-size: 16px; text-transform: uppercase; }
         .tab.active { background: var(--panel); color: var(--accent); border-bottom: 4px solid var(--accent); }
         .btn-h { border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; color: white; background: #444; }
         select { background: #333; color: white; border: 1px solid #555; padding: 8px; border-radius: 6px; flex-grow: 1; margin: 0 15px; max-width: 200px; font-size: 14px; }
         .main-container { display: flex; flex: 1; padding: 12px; gap: 15px; overflow: hidden; }
-        .fader-section { width: 35%; background: var(--panel); border-radius: 15px; padding: 15px; border: 1px solid #333; display: flex; flex-direction: column; box-sizing: border-box; }
+        .fader-section { width: 35%; background: var(--panel); border-radius: 15px; padding: 15px; border: 1px solid #333; display: flex; flex-direction: column; }
         .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; margin-bottom: 10px; min-height: 0; }
         .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; }
-        .fader-label { color: #888; font-size: 11px; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; }
+        .fader-label { color: #888; font-size: 11px; text-transform: uppercase; font-weight: bold; }
         input[type=range][orient=vertical] { appearance: slider-vertical; width: 45px; height: 80%; background: #333; accent-color: var(--accent); }
         .macro-container { border-top: 2px solid #333; padding-top: 15px; text-align: center; }
-        input[id=macro] { width: 95%; height: 35px; accent-color: var(--accent); cursor: pointer; }
+        input[id=macro] { width: 95%; height: 35px; accent-color: var(--accent); }
         .val-box { color: var(--accent); font-family: monospace; font-size: 14px; background: #000; padding: 4px 8px; border-radius: 5px; border: 1px solid #333; margin-top: 5px; }
         .scroll-wrapper { width: 65%; height: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; padding-right: 5px; }
         .grid { display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; padding-bottom: 80px; }
         .grid.active { display: grid; }
-        .midi-pad { background: #252525; border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 700; height: 85px; cursor: pointer; border-bottom: 5px solid #000; transition: background 0.1s; display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px; }
+        .midi-pad { background: #252525; border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 700; height: 85px; cursor: pointer; border-bottom: 5px solid #000; display: flex; align-items: center; justify-content: center; text-align: center; }
         .midi-pad.selected { background: var(--accent); color: #000; border-bottom: 0px; transform: translateY(4px); }
         #debug { background: #000; color: #0f0; font-family: monospace; font-size: 12px; padding: 8px 20px; border-top: 1px solid #333; height: 35px; flex-shrink: 0; }
     </style>
@@ -36,7 +40,7 @@
     <div class="setup-bar">
         <button id="btn-init" class="btn-h" style="background:var(--accent); color:#000">INIT MIDI</button>
         <select id="midi-select"><option>Port...</option></select>
-        <button id="btn-fs" class="btn-h">FULLSCREEN</button>
+        <button id="btn-fs" class="btn-h">FS</button>
         <button id="btn-panic" class="btn-h" style="background:#900">PANIC</button>
     </div>
 
@@ -50,8 +54,8 @@
             <div class="v-fader-row">
                 <div class="fader-group"><div class="fader-label">Pitch</div><input type="range" id="pitch" orient="vertical" min="0" max="127" value="64"><div class="val-box" id="v-p">64</div></div>
                 <div class="fader-group"><div class="fader-label" id="lbl-1">Mod W</div><input type="range" id="f1" orient="vertical" min="0" max="127" value="0"><div class="val-box" id="v1">0</div></div>
-                <div class="fader-group"><div class="label" id="lbl-2">Rel</div><input type="range" id="f2" orient="vertical" min="0" max="127" value="0"><div class="val-box" id="v2">0</div></div>
-                <div class="fader-group"><div class="label" id="lbl-3">Mod K</div><input type="range" id="f3" orient="vertical" min="0" max="127" value="0"><div class="val-box" id="v3">0</div></div>
+                <div class="fader-group"><div class="fader-label" id="lbl-2">Rel</div><input type="range" id="f2" orient="vertical" min="0" max="127" value="0"><div class="val-box" id="v2">0</div></div>
+                <div class="fader-group"><div class="fader-label" id="lbl-3">Mod K</div><input type="range" id="f3" orient="vertical" min="0" max="127" value="0"><div class="val-box" id="v3">0</div></div>
             </div>
             <div class="macro-container">
                 <div class="fader-label">Master (CC 20)</div>
@@ -59,27 +63,27 @@
                 <div class="val-box" id="vm">0</div>
             </div>
         </div>
-
-        <div class="scroll-wrapper">
-            <div id="grid-v" class="grid active"></div>
-            <div id="grid-a" class="grid"></div>
-        </div>
+        <div class="scroll-wrapper"><div id="grid-v" class="grid active"></div><div id="grid-a" class="grid"></div></div>
     </div>
 
-    <div id="debug">> Press INIT to start.</div>
+    <div id="debug">> Press INIT (App Mode)</div>
 
     <script>
-        let midi = null;
-        let activeTab = 'v';
-        let wakeLock = null;
+        // Simple Service Worker to enable PWA installation
+        if ('serviceWorker' in navigator) {
+            const code = `self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request)));`;
+            const blob = new Blob([code], {type: 'text/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(blob));
+        }
 
+        let midi = null; let activeTab = 'v'; let wakeLock = null;
         const states = {
             v: { chan: 2, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 64 },
             a: { chan: 0, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 127 }
         };
 
-        const viperPresets = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
-        const labPresets = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
+        const vP = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
+        const lP = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
 
         async function init() {
             try {
@@ -92,51 +96,31 @@
                     opt.value = i; opt.innerText = out.name;
                     sel.appendChild(opt);
                 });
-                sel.onchange = (e) => { 
-                    midi = outputs[e.target.value];
-                    document.getElementById('debug').innerText = "> Connected: " + midi.name;
-                };
+                sel.onchange = (e) => { midi = outputs[e.target.value]; };
                 midi = outputs[0];
-                if(midi) document.getElementById('debug').innerText = "> Connected: " + midi.name;
-                
+                if(midi) document.getElementById('debug').innerText = "> LIVE: " + midi.name;
                 if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
-                
-                bindControls(); // Force bind logic to UI elements
-            } catch (err) { document.getElementById('debug').innerText = "> Error: " + err.message; }
+                bind();
+            } catch (err) { document.getElementById('debug').innerText = "> PWA Permission Required."; }
         }
 
-        function bindControls() {
-            // Re-attach input listeners to ensure they are active
-            const sliders = [
-                { id: 'f1', cc: 1, disp: 'v1' },
-                { id: 'f2', cc: 7, disp: 'v2' },
-                { id: 'f3', cc: 30, disp: 'v3' },
-                { id: 'macro', cc: 20, disp: 'vm' }
-            ];
-
+        function bind() {
+            const sliders = [{ id: 'f1', cc: 1, disp: 'v1' }, { id: 'f2', cc: 7, disp: 'v2' }, { id: 'f3', cc: 30, disp: 'v3' }, { id: 'macro', cc: 20, disp: 'vm' }];
             sliders.forEach(s => {
                 const el = document.getElementById(s.id);
                 el.oninput = () => {
-                    const val = el.value;
-                    document.getElementById(s.disp).innerText = val;
-                    states[activeTab][s.id] = val;
-                    if (midi) {
-                        midi.send([0xB0 + states[activeTab].chan, s.cc, val]);
-                        document.getElementById('debug').innerText = `> CH${states[activeTab].chan + 1} CC${s.cc} Val ${val}`;
-                    }
+                    document.getElementById(s.disp).innerText = el.value;
+                    states[activeTab][s.id] = el.value;
+                    if (midi) midi.send([0xB0 + states[activeTab].chan, s.cc, el.value]);
                 };
             });
-
             const p = document.getElementById('pitch');
             p.oninput = () => {
-                const val = p.value;
-                document.getElementById('v-p').innerText = val;
-                states[activeTab].pitch = val;
-                if (midi) midi.send([0xE0 + states[activeTab].chan, 0, val]);
+                document.getElementById('v-p').innerText = p.value;
+                if (midi) midi.send([0xE0 + states[activeTab].chan, 0, p.value]);
             };
             p.onmouseup = p.ontouchend = () => {
                 p.value = 64; document.getElementById('v-p').innerText = 64;
-                states[activeTab].pitch = 64;
                 if (midi) midi.send([0xE0 + states[activeTab].chan, 0, 64]);
             };
         }
@@ -145,76 +129,49 @@
             activeTab = p;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.grid').forEach(g => g.classList.remove('active'));
-            const body = document.getElementById('app-body');
-            const macroInput = document.getElementById('macro');
-
+            const b = document.getElementById('app-body');
+            const mI = document.getElementById('macro');
             if (p === 'v') {
-                body.classList.remove('theme-lab');
+                b.classList.remove('theme-lab');
                 document.getElementById('tab-v').classList.add('active');
                 document.getElementById('grid-v').classList.add('active');
-                setL("Mod W", "Rel", "Mod K");
+                document.getElementById('lbl-1').innerText = "Mod W"; document.getElementById('lbl-2').innerText = "Rel"; document.getElementById('lbl-3').innerText = "Mod K";
             } else {
-                body.classList.add('theme-lab');
+                b.classList.add('theme-lab');
                 document.getElementById('tab-a').classList.add('active');
                 document.getElementById('grid-a').classList.add('active');
-                setL("Mod", "2", "3");
+                document.getElementById('lbl-1').innerText = "Mod"; document.getElementById('lbl-2').innerText = "2"; document.getElementById('lbl-3').innerText = "3";
             }
-
-            macroInput.max = states[p].maxMacro;
-            macroInput.value = states[p].macro;
+            mI.max = states[p].maxMacro; mI.value = states[p].macro;
             document.getElementById('vm').innerText = states[p].macro;
-            document.getElementById('f1').value = states[p].f1;
-            document.getElementById('v1').innerText = states[p].f1;
-            document.getElementById('f2').value = states[p].f2;
-            document.getElementById('v2').innerText = states[p].f2;
-            document.getElementById('f3').value = states[p].f3;
-            document.getElementById('v3').innerText = states[p].f3;
-            document.getElementById('pitch').value = states[p].pitch;
-            document.getElementById('v-p').innerText = states[p].pitch;
+            document.getElementById('f1').value = states[p].f1; document.getElementById('v1').innerText = states[p].f1;
+            document.getElementById('f2').value = states[p].f2; document.getElementById('v2').innerText = states[p].f2;
+            document.getElementById('f3').value = states[p].f3; document.getElementById('v3').innerText = states[p].f3;
+            document.getElementById('pitch').value = states[p].pitch; document.getElementById('v-p').innerText = states[p].pitch;
         }
 
-        function setL(l1, l2, l3) {
-            document.getElementById('lbl-1').innerText = l1;
-            document.getElementById('lbl-2').innerText = l2;
-            document.getElementById('lbl-3').innerText = l3;
-        }
-
-        function sMsg(type, val, btn) {
-            const currentGrid = btn.parentElement;
-            currentGrid.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
+        function sM(type, val, btn) {
+            btn.parentElement.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
-            const s = states[activeTab];
             if (midi) {
-                if (type === 'cc') midi.send([0xB0 + s.chan, 27, val]);
-                else midi.send([0xC0 + s.chan, val]);
-                document.getElementById('debug').innerText = `> CH${s.chan+1} ${type.toUpperCase()} ${val}`;
+                if (type === 'cc') midi.send([0xB0 + states[activeTab].chan, 27, val]);
+                else midi.send([0xC0 + states[activeTab].chan, val]);
             }
         }
 
         const gV = document.getElementById('grid-v');
-        viperPresets.forEach((n, i) => {
-            const b = document.createElement('button');
-            b.className = 'midi-pad'; b.innerText = n;
-            b.onclick = () => sMsg('cc', i, b);
-            gV.appendChild(b);
+        vP.forEach((n, i) => {
+            const b = document.createElement('button'); b.className = 'midi-pad'; b.innerText = n;
+            b.onclick = () => sM('cc', i, b); gV.appendChild(b);
         });
-
         const gA = document.getElementById('grid-a');
-        labPresets.forEach((n, i) => {
-            const b = document.createElement('button');
-            b.className = 'midi-pad'; b.innerText = n;
-            b.onclick = () => sMsg('pc', i + 1, b);
-            gA.appendChild(b);
+        lP.forEach((n, i) => {
+            const b = document.createElement('button'); b.className = 'midi-pad'; b.innerText = n;
+            b.onclick = () => sM('pc', i + 1, b); gA.appendChild(b);
         });
 
         document.getElementById('btn-init').onclick = init;
-        document.getElementById('btn-fs').onclick = () => {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else document.exitFullscreen();
-        };
-        document.getElementById('btn-panic').onclick = () => {
-            if (midi) midi.send([0xB0 + states[activeTab].chan, 123, 0]);
-        };
+        document.getElementById('btn-panic').onclick = () => { if (midi) midi.send([0xB0 + states[activeTab].chan, 123, 0]); };
     </script>
 </body>
 </html>
