@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MIDI Master Tablet</title>
+    
+    <!-- PWA Metadata to force hardware access -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="data:application/manifest+json,{'name':'VirusMaster','short_name':'Virus','start_url':'.','display':'standalone','orientation':'landscape'}">
+
     <style>
         :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
         .theme-lab { --accent: #a044ff; }
@@ -73,6 +78,13 @@
     <div id="debug">> Tablet Ready. Tap INIT MIDI.</div>
 
     <script>
+        // Service Worker setup for clear app install capabilities
+        if ('serviceWorker' in navigator) {
+            const code = `self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request)));`;
+            const blob = new Blob([code], {type: 'text/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+        }
+
         let midi = null; let activeTab = 'v'; let wakeLock = null;
         const states = {
             v: { chan: 2, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 64 },
@@ -82,7 +94,6 @@
         const vP = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
         const lP = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
 
-        // FORCE FULLSCREEN FIX
         document.getElementById('btn-fs').onclick = () => {
             const doc = document.documentElement;
             if (!document.fullscreenElement) {
@@ -96,7 +107,6 @@
 
         async function init() {
             try {
-                // Requesting sysex often forces the permission pop-up on Android
                 const access = await navigator.requestMIDIAccess({ sysex: true });
                 const outputs = Array.from(access.outputs.values());
                 const sel = document.getElementById('midi-select');
@@ -130,7 +140,10 @@
                 el.oninput = () => {
                     document.getElementById(s.disp).innerText = el.value;
                     states[activeTab][s.id] = el.value;
-                    if (midi) midi.send([0xB0 + states[activeTab].chan, s.cc, el.value]);
+                    if (midi) {
+                        midi.send([0xB0 + states[activeTab].chan, s.cc, el.value]);
+                        document.getElementById('debug').innerText = `> CH${states[activeTab].chan + 1} CC${s.cc} Val ${el.value}`;
+                    }
                 };
             });
             const p = document.getElementById('pitch');
@@ -175,8 +188,13 @@
             btn.parentElement.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
             if (midi) {
-                if (type === 'cc') midi.send([0xB0 + states[activeTab].chan, 27, val]);
-                else midi.send([0xC0 + states[activeTab].chan, val]);
+                if (type === 'cc') {
+                    midi.send([0xB0 + states[activeTab].chan, 27, val]);
+                    document.getElementById('debug').innerText = `> CH${states[activeTab].chan + 1} CC27 Val ${val}`;
+                } else {
+                    midi.send([0xC0 + states[activeTab].chan, val]);
+                    document.getElementById('debug').innerText = `> CH${states[activeTab].chan + 1} PC Val ${val}`;
+                }
             }
         }
 
