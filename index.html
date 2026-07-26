@@ -1,279 +1,315 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Custom MIDI Controller</title>
-  <style>
-    /* Global Styles */
-    body {
-      background-color: #1e1e1e;
-      color: #ffffff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 20px;
-      touch-action: manipulation; /* Prevents double-tap zooming on tablets */
-    }
-
-    h1, h2 { text-align: center; margin-top: 0; }
-
-    /* MIDI Port Selector */
-    .midi-setup {
-      background-color: #2d2d2d;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    select, button.init-btn {
-      padding: 10px;
-      font-size: 16px;
-      margin: 5px;
-      border-radius: 4px;
-      border: 1px solid #555;
-      background: #333;
-      color: white;
-    }
-    button.init-btn { cursor: pointer; background: #0078D7; border: none; }
-    button.init-btn:active { background: #005A9E; }
-
-    /* Tab Navigation */
-    .tab-nav {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .tab-btn {
-      background-color: #333;
-      color: #fff;
-      border: none;
-      padding: 15px 30px;
-      margin: 0 5px;
-      font-size: 16px;
-      font-weight: bold;
-      border-radius: 8px 8px 0 0;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    .tab-btn.active { background-color: #555; }
-
-    /* General Tab Content */
-    .tab-content { display: none; border-radius: 8px; padding: 20px; }
-    .tab-content.active { display: block; }
-
-    /* Default Grid (Viper & Analog Lab) */
-    .default-grid { display: flex; flex-wrap: wrap; justify-content: center; }
-    .default-btn {
-      background-color: #444; color: #fff; border: 1px solid #666;
-      padding: 15px; margin: 5px; font-size: 14px;
-      border-radius: 4px; cursor: pointer;
-      width: calc(25% - 14px); box-sizing: border-box;
-    }
-    .default-btn:active { background-color: #666; }
-
-    /* NTS-1 Specific Styles */
-    #nts1-tab { background-color: #555555; }
-    #nts1-tab h2 { color: #FFD700; text-transform: uppercase; }
-    #nts1-tab .preset-btn {
-      background-color: #000000; color: #FFD700; border: 2px solid #FFD700;
-      padding: 15px; margin: 5px; font-size: 13px; font-weight: bold;
-      text-transform: uppercase; border-radius: 4px; cursor: pointer;
-      width: calc(20% - 14px); box-sizing: border-box;
-      transition: background-color 0.1s;
-    }
-    #nts1-tab .preset-btn:active { background-color: #FFD700; color: #000000; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MIDI Master Tablet</title>
     
-    /* Pitch Fader Shared Styles */
-    .pitch-container { margin-top: 30px; text-align: center; font-weight: bold; }
-    #nts1-tab .pitch-container { color: #FFD700; }
-    input[type=range] { width: 80%; margin-top: 15px; }
+    <!-- PWA Metadata to force hardware access -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="data:application/manifest+json,{'name':'VirusMaster','short_name':'Virus','start_url':'.','display':'standalone','orientation':'landscape'}">
 
-  </style>
+    <style>
+        :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
+        .theme-lab { --accent: #a044ff; }
+        /* NTS-1 Specific Theme Colors */
+        .theme-nts { --accent: #FFD700; --panel: #555555; }
+        
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: background 0.3s; }
+        
+        .setup-bar { background: #222; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; flex-shrink: 0; height: 60px; box-sizing: border-box; }
+        .tabs { display: flex; background: #111; border-bottom: 2px solid #333; flex-shrink: 0; height: 55px; }
+        .tab { flex: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; color: #666; font-size: 16px; text-transform: uppercase; transition: 0.2s; }
+        .tab.active { background: var(--panel); color: var(--accent); border-bottom: 4px solid var(--accent); }
+
+        .btn-h { border: none; padding: 12px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; color: white; background: #444; }
+        #btn-init { background: var(--accent); color: #000; }
+        select { background: #333; color: white; border: 1px solid #555; padding: 10px; border-radius: 6px; flex-grow: 1; margin: 0 15px; max-width: 250px; font-size: 14px; }
+        
+        .main-container { display: flex; flex: 1; padding: 12px; gap: 15px; overflow: hidden; }
+        
+        .fader-section { width: 35%; background: var(--panel); border-radius: 15px; padding: 15px; border: 1px solid #333; display: flex; flex-direction: column; box-sizing: border-box; transition: 0.3s; }
+        .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; margin-bottom: 10px; min-height: 0; }
+        .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; }
+        .fader-label { color: #888; font-size: 11px; text-transform: uppercase; font-weight: bold; text-align: center; }
+        
+        /* Special handling for NTS-1 Gold UI */
+        .theme-nts .fader-label { color: #000; }
+        .theme-nts .val-box { background: #333; border-color: #222; }
+
+        input[type=range][orient=vertical] { appearance: slider-vertical; width: 45px; height: 80%; background: #333; accent-color: var(--accent); }
+        .macro-container { border-top: 2px solid #333; padding-top: 15px; text-align: center; }
+        input[id=macro] { width: 95%; height: 35px; accent-color: var(--accent); }
+        .val-box { color: var(--accent); font-family: monospace; font-size: 14px; background: #000; padding: 4px 8px; border-radius: 5px; border: 1px solid #333; margin-top: 5px; }
+
+        .scroll-wrapper { width: 65%; height: 100%; overflow-y: scroll; -webkit-overflow-scrolling: touch; padding-right: 5px; }
+        .grid { display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; padding-bottom: 80px; }
+        .grid.active { display: grid; }
+        .midi-pad { background: #252525; border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 700; height: 90px; cursor: pointer; border-bottom: 5px solid #000; display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px; transition: 0.1s; }
+        .midi-pad.selected { background: var(--accent); color: #000; border-bottom: 0px; transform: translateY(4px); }
+        
+        /* NTS-1 Specific Pad Overrides */
+        .theme-nts .midi-pad { background: #000; color: var(--accent); border-bottom: 5px solid #222; border-top: 1px solid #222; border-left: 1px solid #222; border-right: 1px solid #222;}
+        .theme-nts .midi-pad.selected { background: var(--accent); color: #000; border: none; }
+
+        #debug { background: #000; color: #0f0; font-family: monospace; font-size: 12px; padding: 8px 20px; border-top: 1px solid #333; height: 35px; flex-shrink: 0; }
+    </style>
 </head>
-<body>
+<body id="app-body" class="v-mode">
 
-  <h1>Control Surface</h1>
-
-  <!-- MIDI Connection Setup -->
-  <div class="midi-setup">
-    <button class="init-btn" onclick="initMIDI()">INIT MIDI</button>
-    <select id="midi-output-select">
-      <option value="">Select MIDI Output...</option>
-    </select>
-  </div>
-
-  <!-- Tab Navigation -->
-  <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab(event, 'viper-tab')">VIPER</button>
-    <button class="tab-btn" onclick="switchTab(event, 'analog-lab-tab')">ANALOG LAB</button>
-    <button class="tab-btn" onclick="switchTab(event, 'nts1-tab')">NTS-1</button>
-  </div>
-
-  <!-- VIPER TAB -->
-  <div id="viper-tab" class="tab-content active" style="background-color: #2b2b2b;">
-    <h2>Viper</h2>
-    <div class="default-grid">
-      <!-- Plug your existing Viper buttons here -->
-      <button class="default-btn">Viper Preset 1</button>
-      <button class="default-btn">Viper Preset 2</button>
-    </div>
-    <div class="pitch-container">
-      <label>PITCH BEND</label><br>
-      <input type="range" min="0" max="127" value="64" 
-             oninput="sendPitchMIDI(this.value, 1)" 
-             onmouseup="resetPitch(this, 1)" ontouchend="resetPitch(this, 1)">
-    </div>
-  </div>
-
-  <!-- ANALOG LAB TAB -->
-  <div id="analog-lab-tab" class="tab-content" style="background-color: #223344;">
-    <h2>Analog Lab</h2>
-    <div class="default-grid">
-      <!-- Plug your existing Analog Lab buttons here -->
-      <button class="default-btn">AL Preset 1</button>
-      <button class="default-btn">AL Preset 2</button>
-    </div>
-    <div class="pitch-container">
-      <label>PITCH BEND</label><br>
-      <input type="range" min="0" max="127" value="64" 
-             oninput="sendPitchMIDI(this.value, 1)" 
-             onmouseup="resetPitch(this, 1)" ontouchend="resetPitch(this, 1)">
-    </div>
-  </div>
-
-  <!-- NTS-1 TAB -->
-  <div id="nts1-tab" class="tab-content">
-    <h2>NTS-1</h2>
-    <div class="preset-grid" style="display: flex; flex-wrap: wrap; justify-content: center;">
-      <!-- 25 Alphabetical Presets -->
-      <button class="preset-btn" onclick="sendNTS1Burst('Blank Planet')">Blank Planet</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Cave Formation')">Cave Formation</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Copper Drone')">Copper Drone</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Digital Bath')">Digital Bath</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Distorted Vision')">Distorted Vis.</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Event Horizon')">Event Horizon</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Falling Star')">Falling Star</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Glass Halo')">Glass Halo</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Haunted Forest')">Haunted Forest</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('High Scores')">High Scores</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Hot Buttered')">Hot Buttered</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Ice Storm')">Ice Storm</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Kinda Stringy')">Kinda Stringy</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Massive Monks')">Massive Monks</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Parabola Pulse')">Parabola Pulse</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Passenger Drone')">Pass. Drone</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Pins and Needles')">Pins & Needles</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Smooth EP')">Smooth EP</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Soopasaw')">Soopasaw</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Space Gong')">Space Gong</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Stellar Wash')">Stellar Wash</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Third Eye Sweep')">3rd Eye Sweep</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Trench Grinder')">Trench Grinder</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('Upwud')">Upwud</button>
-      <button class="preset-btn" onclick="sendNTS1Burst('White Pony Tape')">White Pony Tape</button>
+    <div class="setup-bar">
+        <button id="btn-init" class="btn-h">INIT MIDI</button>
+        <select id="midi-select"><option>Select PC Port...</option></select>
+        <button id="btn-fs" class="btn-h">FULLSCREEN</button>
+        <button id="btn-panic" class="btn-h" style="background:#900">PANIC</button>
     </div>
 
-    <div class="pitch-container">
-      <label>PITCH BEND</label><br>
-      <input type="range" min="0" max="127" value="64" 
-             oninput="sendPitchMIDI(this.value, 1)" 
-             onmouseup="resetPitch(this, 1)" ontouchend="resetPitch(this, 1)">
+    <div class="tabs">
+        <div id="tab-v" class="tab active" onclick="setPage('v')">Viper</div>
+        <div id="tab-a" class="tab" onclick="setPage('a')">Analog Lab</div>
+        <div id="tab-n" class="tab" onclick="setPage('n')">NTS-1</div>
     </div>
-  </div>
 
-  <script>
-    let midiAccess = null;
-    let selectedOutput = null;
+    <div class="main-container">
+        <div class="fader-section">
+            <div class="v-fader-row">
+                <div class="fader-group">
+                    <div class="fader-label">Pitch</div>
+                    <input type="range" id="pitch" orient="vertical" min="0" max="127" value="64">
+                    <div class="val-box" id="v-p">64</div>
+                </div>
+                <!-- Added 'hide-on-nts' class to elements that shouldn't appear on the NTS-1 tab -->
+                <div class="fader-group hide-on-nts">
+                    <div class="fader-label" id="lbl-1">Mod W</div>
+                    <input type="range" id="f1" orient="vertical" min="0" max="127" value="0">
+                    <div class="val-box" id="v1">0</div>
+                </div>
+                <div class="fader-group hide-on-nts">
+                    <div class="fader-label" id="lbl-2">Rel</div>
+                    <input type="range" id="f2" orient="vertical" min="0" max="127" value="0">
+                    <div class="val-box" id="v2">0</div>
+                </div>
+                <div class="fader-group hide-on-nts">
+                    <div class="fader-label" id="lbl-3">Mod K</div>
+                    <input type="range" id="f3" orient="vertical" min="0" max="127" value="0">
+                    <div class="val-box" id="v3">0</div>
+                </div>
+            </div>
+            <div class="macro-container hide-on-nts">
+                <div class="fader-label">Master (CC 20)</div>
+                <input type="range" id="macro" min="0" max="64" value="0">
+                <div class="val-box" id="vm">0</div>
+            </div>
+        </div>
+        
+        <div class="scroll-wrapper">
+            <div id="grid-v" class="grid active"></div>
+            <div id="grid-a" class="grid"></div>
+            <div id="grid-n" class="grid"></div>
+        </div>
+    </div>
 
-    // --- Tab Switching Logic ---
-    function switchTab(evt, tabId) {
-      const contents = document.getElementsByClassName("tab-content");
-      for (let i = 0; i < contents.length; i++) {
-        contents[i].classList.remove("active");
-      }
-      const buttons = document.getElementsByClassName("tab-btn");
-      for (let i = 0; i < buttons.length; i++) {
-        buttons[i].classList.remove("active");
-      }
-      document.getElementById(tabId).classList.add("active");
-      evt.currentTarget.classList.add("active");
-    }
+    <div id="debug">> Tablet Ready. Tap INIT MIDI.</div>
 
-    // --- Web MIDI Initialization ---
-    async function initMIDI() {
-      try {
-        midiAccess = await navigator.requestMIDIAccess();
-        populateOutputs();
-        midiAccess.onstatechange = populateOutputs;
-        alert("MIDI Initialized successfully!");
-      } catch (err) {
-        alert("Failed to initialize Web MIDI. Ensure you are using Chrome/Edge and site permissions are granted.");
-        console.error(err);
-      }
-    }
+    <script>
+        if ('serviceWorker' in navigator) {
+            const code = `self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request)));`;
+            const blob = new Blob([code], {type: 'text/javascript'});
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+        }
 
-    function populateOutputs() {
-      if (!midiAccess) return;
-      const select = document.getElementById("midi-output-select");
-      select.innerHTML = '<option value="">Select MIDI Output...</option>';
-      
-      for (let output of midiAccess.outputs.values()) {
-        const option = document.createElement("option");
-        option.value = output.id;
-        option.text = output.name;
-        select.appendChild(option);
-      }
+        let midi = null; let activeTab = 'v'; let wakeLock = null;
+        
+        // Added 'n' state for NTS-1 (Channel 0 = MIDI Ch 1)
+        const states = {
+            v: { chan: 2, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 64 },
+            a: { chan: 0, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 127 },
+            n: { chan: 0, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 127 } 
+        };
 
-      select.onchange = (e) => {
-        selectedOutput = midiAccess.outputs.get(e.target.value);
-      };
-    }
+        const vP = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
+        const lP = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
+        
+        // 25 Alphabetical NTS-1 Presets
+        const nP = ["Blank Planet", "Cave Formation", "Copper Drone", "Digital Bath", "Distorted Vision", "Event Horizon", "Falling Star", "Glass Halo", "Haunted Forest", "High Scores", "Hot Buttered", "Ice Storm", "Kinda Stringy", "Massive Monks", "Parabola Pulse", "Passenger Drone", "Pins and Needles", "Smooth EP", "Soopasaw", "Space Gong", "Stellar Wash", "Third Eye Sweep", "Trench Grinder", "Upwud", "White Pony Tape"];
 
-    // --- NTS-1 CC Macro Dictionary ---
-    // Expand these arrays to include all specific CC values for each patch
-    const nts1Presets = {
-      "Blank Planet": [ {cc: 53, val: 0}, {cc: 42, val: 18}, {cc: 88, val: 50}, {cc: 117, val: 1} ],
-      "Cave Formation": [ {cc: 53, val: 2}, {cc: 42, val: 22}, {cc: 90, val: 4} ], 
-      "Copper Drone": [ {cc: 53, val: 3}, {cc: 54, val: 102}, {cc: 42, val: 8} ],
-      "Digital Bath": [ {cc: 53, val: 1}, {cc: 42, val: 12}, {cc: 88, val: 2}, {cc: 90, val: 4} ],
-      "Event Horizon": [ {cc: 53, val: 0}, {cc: 54, val: 64}, {cc: 42, val: 22}, {cc: 88, val: 2} ],
-      // Placeholder for remaining—fill in using the provided CC lists
-      "Glass Halo": [ {cc: 53, val: 1}, {cc: 42, val: 14}, {cc: 88, val: 1}, {cc: 89, val: 2} ] 
-    };
+        // NTS-1 Macro Burst Dictionary (Expand values per Korg CC implementation)
+        const nts1Presets = {
+            "Blank Planet": [ {cc: 53, val: 0}, {cc: 42, val: 18}, {cc: 88, val: 50}, {cc: 117, val: 1} ],
+            "Cave Formation": [ {cc: 53, val: 2}, {cc: 42, val: 22}, {cc: 90, val: 4} ], 
+            "Copper Drone": [ {cc: 53, val: 3}, {cc: 54, val: 102}, {cc: 42, val: 8} ],
+            "Digital Bath": [ {cc: 53, val: 1}, {cc: 42, val: 12}, {cc: 88, val: 2}, {cc: 90, val: 4} ],
+            "Distorted Vision": [ {cc: 53, val: 4}, {cc: 42, val: 18}, {cc: 88, val: 1} ],
+            "Event Horizon": [ {cc: 53, val: 0}, {cc: 54, val: 64}, {cc: 42, val: 22}, {cc: 88, val: 2} ],
+            "Falling Star": [ {cc: 53, val: 0}, {cc: 42, val: 12} ],
+            "Glass Halo": [ {cc: 53, val: 1}, {cc: 42, val: 14}, {cc: 88, val: 1}, {cc: 89, val: 2} ],
+            "Haunted Forest": [ {cc: 53, val: 3}, {cc: 88, val: 1} ],
+            "High Scores": [ {cc: 53, val: 2}, {cc: 117, val: 0} ],
+            "Hot Buttered": [ {cc: 53, val: 0}, {cc: 42, val: 18} ],
+            "Ice Storm": [ {cc: 53, val: 1}, {cc: 42, val: 18}, {cc: 90, val: 3} ],
+            "Kinda Stringy": [ {cc: 53, val: 0}, {cc: 42, val: 22}, {cc: 88, val: 2} ],
+            "Massive Monks": [ {cc: 53, val: 3}, {cc: 42, val: 16} ],
+            "Parabola Pulse": [ {cc: 53, val: 2}, {cc: 89, val: 2} ],
+            "Passenger Drone": [ {cc: 53, val: 3}, {cc: 42, val: 14} ],
+            "Pins and Needles": [ {cc: 53, val: 2}, {cc: 89, val: 1} ],
+            "Smooth EP": [ {cc: 53, val: 1}, {cc: 42, val: 18} ],
+            "Soopasaw": [ {cc: 53, val: 0}, {cc: 42, val: 18} ],
+            "Space Gong": [ {cc: 53, val: 3}, {cc: 88, val: 1} ],
+            "Stellar Wash": [ {cc: 53, val: 1}, {cc: 42, val: 12} ],
+            "Third Eye Sweep": [ {cc: 53, val: 2}, {cc: 42, val: 22} ],
+            "Trench Grinder": [ {cc: 53, val: 3}, {cc: 42, val: 16} ],
+            "Upwud": [ {cc: 53, val: 0}, {cc: 42, val: 18} ],
+            "White Pony Tape": [ {cc: 53, val: 0}, {cc: 42, val: 16}, {cc: 89, val: 3} ]
+        };
 
-    function sendNTS1Burst(presetName) {
-      if (!selectedOutput) {
-        alert("Please select a MIDI output first!");
-        return;
-      }
-      const ccBurst = nts1Presets[presetName];
-      if (ccBurst) {
-        ccBurst.forEach(msg => {
-          // Send CC to MIDI Channel 1 (0xB0)
-          selectedOutput.send([0xB0, msg.cc, msg.val]);
+        document.getElementById('btn-fs').onclick = () => {
+            const doc = document.documentElement;
+            if (!document.fullscreenElement) {
+                doc.requestFullscreen().catch(err => {
+                    document.getElementById('debug').innerText = "> FS Error: Tap screen first";
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        };
+
+        async function init() {
+            try {
+                const access = await navigator.requestMIDIAccess({ sysex: true });
+                const outputs = Array.from(access.outputs.values());
+                const sel = document.getElementById('midi-select');
+                sel.innerHTML = '';
+                
+                outputs.forEach((out, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = i; opt.innerText = out.name;
+                    sel.appendChild(opt);
+                });
+
+                sel.onchange = (e) => { 
+                    midi = outputs[e.target.value];
+                    document.getElementById('debug').innerText = "> Active: " + midi.name;
+                };
+
+                midi = outputs[0];
+                if(midi) document.getElementById('debug').innerText = "> Connected: " + midi.name;
+                
+                if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+                bind();
+            } catch (err) { 
+                document.getElementById('debug').innerText = "> MIDI Blocked. Check Site Settings."; 
+            }
+        }
+
+        function bind() {
+            const sliders = [{ id: 'f1', cc: 1, disp: 'v1' }, { id: 'f2', cc: 7, disp: 'v2' }, { id: 'f3', cc: 30, disp: 'v3' }, { id: 'macro', cc: 20, disp: 'vm' }];
+            sliders.forEach(s => {
+                const el = document.getElementById(s.id);
+                el.oninput = () => {
+                    document.getElementById(s.disp).innerText = el.value;
+                    states[activeTab][s.id] = el.value;
+                    if (midi) {
+                        midi.send([0xB0 + states[activeTab].chan, s.cc, el.value]);
+                        document.getElementById('debug').innerText = `> CH${states[activeTab].chan + 1} CC${s.cc} Val ${el.value}`;
+                    }
+                };
+            });
+            const p = document.getElementById('pitch');
+            p.oninput = () => {
+                document.getElementById('v-p').innerText = p.value;
+                if (midi) midi.send([0xE0 + states[activeTab].chan, 0, p.value]);
+            };
+            p.onmouseup = p.ontouchend = () => {
+                p.value = 64; document.getElementById('v-p').innerText = 64;
+                if (midi) midi.send([0xE0 + states[activeTab].chan, 0, 64]);
+            };
+        }
+
+        function setPage(p) {
+            activeTab = p;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.grid').forEach(g => g.classList.remove('active'));
+            const b = document.getElementById('app-body');
+            const mI = document.getElementById('macro');
+            
+            // Clean up old theme classes
+            b.classList.remove('theme-lab', 'theme-nts');
+            
+            // Show/Hide irrelevant faders dynamically based on active tab
+            document.querySelectorAll('.hide-on-nts').forEach(el => {
+                el.style.display = (p === 'n') ? 'none' : 'flex';
+            });
+            
+            if (p === 'v') {
+                document.getElementById('tab-v').classList.add('active');
+                document.getElementById('grid-v').classList.add('active');
+                document.getElementById('lbl-1').innerText = "Mod W"; document.getElementById('lbl-2').innerText = "Rel"; document.getElementById('lbl-3').innerText = "Mod K";
+            } else if (p === 'a') {
+                b.classList.add('theme-lab');
+                document.getElementById('tab-a').classList.add('active');
+                document.getElementById('grid-a').classList.add('active');
+                document.getElementById('lbl-1').innerText = "Mod"; document.getElementById('lbl-2').innerText = "2"; document.getElementById('lbl-3').innerText = "3";
+            } else if (p === 'n') {
+                b.classList.add('theme-nts');
+                document.getElementById('tab-n').classList.add('active');
+                document.getElementById('grid-n').classList.add('active');
+                // The other faders are hidden here, so no label changing is necessary
+            }
+            
+            mI.max = states[p].maxMacro; mI.value = states[p].macro;
+            document.getElementById('vm').innerText = states[p].macro;
+            document.getElementById('f1').value = states[p].f1; document.getElementById('v1').innerText = states[p].f1;
+            document.getElementById('f2').value = states[p].f2; document.getElementById('v2').innerText = states[p].f2;
+            document.getElementById('f3').value = states[p].f3; document.getElementById('v3').innerText = states[p].f3;
+            document.getElementById('pitch').value = states[p].pitch; document.getElementById('v-p').innerText = states[p].pitch;
+        }
+
+        function sM(type, val, btn) {
+            btn.parentElement.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            if (midi) {
+                if (type === 'cc') {
+                    midi.send([0xB0 + states[activeTab].chan, 27, val]);
+                    document.getElementById('debug').innerText = `> CH${states[activeTab].chan + 1} CC27 Val ${val}`;
+                } else if (type === 'pc') {
+                    midi.send([0xC0 + states[activeTab].chan, val]);
+                    document.getElementById('debug').innerText = `> CH${states[activeTab].chan + 1} PC Val ${val}`;
+                }
+            }
+        }
+
+        function sendBurst(name, btn) {
+            btn.parentElement.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            const burst = nts1Presets[name];
+            if (midi && burst) {
+                burst.forEach(msg => {
+                    midi.send([0xB0 + states['n'].chan, msg.cc, msg.val]);
+                });
+                document.getElementById('debug').innerText = `> NTS-1 Burst: ${name}`;
+            }
+        }
+
+        const gV = document.getElementById('grid-v');
+        vP.forEach((n, i) => {
+            const b = document.createElement('button'); b.className = 'midi-pad'; b.innerText = n;
+            b.onclick = () => sM('cc', i, b); gV.appendChild(b);
         });
-        console.log(`Sent ${presetName}`);
-      } else {
-        console.log(`Preset data for ${presetName} not yet mapped in JS.`);
-      }
-    }
+        
+        const gA = document.getElementById('grid-a');
+        lP.forEach((n, i) => {
+            const b = document.createElement('button'); b.className = 'midi-pad'; b.innerText = n;
+            b.onclick = () => sM('pc', i + 1, b); gA.appendChild(b);
+        });
 
-    // --- Universal Pitch Bend Logic ---
-    function sendPitchMIDI(val, channel) {
-      if (!selectedOutput) return;
-      // Channel 1 Pitch Bend is 0xE0
-      let statusByte = 0xE0 + (channel - 1);
-      // Simplify 14-bit pitch bend mapping from a 0-127 slider
-      // Center is LSB 0, MSB 64
-      let msb = parseInt(val); 
-      let lsb = 0; 
-      selectedOutput.send([statusByte, lsb, msb]);
-    }
+        const gN = document.getElementById('grid-n');
+        nP.forEach(n => {
+            const b = document.createElement('button'); b.className = 'midi-pad'; b.innerText = n;
+            b.onclick = () => sendBurst(n, b); gN.appendChild(b);
+        });
 
-    function resetPitch(slider, channel) {
-      slider.value = 64;
-      sendPitchMIDI(64, channel);
-    }
-  </script>
+        document.getElementById('btn-init').onclick = init;
+        document.getElementById('btn-panic').onclick = () => { if (midi) midi.send([0xB0 + states[activeTab].chan, 123, 0]); };
+    </script>
 </body>
 </html>
