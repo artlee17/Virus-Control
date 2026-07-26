@@ -12,7 +12,7 @@
     <style>
         :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
         .theme-lab { --accent: #a044ff; }
-        /* NTS-1 Theme Colors: Retains main black/grays, uses a darker brassy gold */
+        /* NTS-1 Theme Colors: Retains main black/grays, uses a darker brassy Korg gold */
         .theme-nts { --accent: #C8A253; }
         
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: background 0.3s; }
@@ -111,7 +111,7 @@
 
         let midi = null; let activeTab = 'v'; let wakeLock = null;
         
-        // 0-indexed MIDI Channels (chan: 1 = MIDI Channel 2)
+        // 0-indexed MIDI Channels: Viper=Ch3, AnalogLab=Ch1, NTS1=Ch2
         const states = {
             v: { chan: 2, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 64 },
             a: { chan: 0, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 127 },
@@ -121,36 +121,35 @@
         const vP = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
         const lP = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
         
-        // 25 Alphabetical NTS-1 Presets
         const nP = ["Blank Planet", "Cave Formation", "Copper Drone", "Digital Bath", "Distorted Vision", "Event Horizon", "Falling Star", "Glass Halo", "Haunted Forest", "High Scores", "Hot Buttered", "Ice Storm", "Kinda Stringy", "Massive Monks", "Parabola Pulse", "Passenger Drone", "Pins and Needles", "Smooth EP", "Soopasaw", "Space Gong", "Stellar Wash", "Third Eye Sweep", "Trench Grinder", "Upwud", "White Pony Tape"];
 
-        // NTS-1 Macro Burst Dictionary
+        // Fully Populated NTS-1 CC Arrays
         const nts1Presets = {
-            "Blank Planet": [ {cc: 53, val: 0}, {cc: 42, val: 18}, {cc: 88, val: 50}, {cc: 117, val: 1} ],
-            "Cave Formation": [ {cc: 53, val: 2}, {cc: 42, val: 22}, {cc: 90, val: 4} ], 
-            "Copper Drone": [ {cc: 53, val: 3}, {cc: 54, val: 102}, {cc: 42, val: 8} ],
-            "Digital Bath": [ {cc: 53, val: 1}, {cc: 42, val: 12}, {cc: 88, val: 2}, {cc: 90, val: 4} ],
-            "Distorted Vision": [ {cc: 53, val: 4}, {cc: 42, val: 18}, {cc: 88, val: 1} ],
-            "Event Horizon": [ {cc: 53, val: 0}, {cc: 54, val: 64}, {cc: 42, val: 22}, {cc: 88, val: 2} ],
-            "Falling Star": [ {cc: 53, val: 0}, {cc: 42, val: 12} ],
-            "Glass Halo": [ {cc: 53, val: 1}, {cc: 42, val: 14}, {cc: 88, val: 1}, {cc: 89, val: 2} ],
-            "Haunted Forest": [ {cc: 53, val: 3}, {cc: 88, val: 1} ],
-            "High Scores": [ {cc: 53, val: 2}, {cc: 117, val: 0} ],
-            "Hot Buttered": [ {cc: 53, val: 0}, {cc: 42, val: 18} ],
-            "Ice Storm": [ {cc: 53, val: 1}, {cc: 42, val: 18}, {cc: 90, val: 3} ],
-            "Kinda Stringy": [ {cc: 53, val: 0}, {cc: 42, val: 22}, {cc: 88, val: 2} ],
-            "Massive Monks": [ {cc: 53, val: 3}, {cc: 42, val: 16} ],
-            "Parabola Pulse": [ {cc: 53, val: 2}, {cc: 89, val: 2} ],
-            "Passenger Drone": [ {cc: 53, val: 3}, {cc: 42, val: 14} ],
-            "Pins and Needles": [ {cc: 53, val: 2}, {cc: 89, val: 1} ],
-            "Smooth EP": [ {cc: 53, val: 1}, {cc: 42, val: 18} ],
-            "Soopasaw": [ {cc: 53, val: 0}, {cc: 42, val: 18} ],
-            "Space Gong": [ {cc: 53, val: 3}, {cc: 88, val: 1} ],
-            "Stellar Wash": [ {cc: 53, val: 1}, {cc: 42, val: 12} ],
-            "Third Eye Sweep": [ {cc: 53, val: 2}, {cc: 42, val: 22} ],
-            "Trench Grinder": [ {cc: 53, val: 3}, {cc: 42, val: 16} ],
-            "Upwud": [ {cc: 53, val: 0}, {cc: 42, val: 18} ],
-            "White Pony Tape": [ {cc: 53, val: 0}, {cc: 42, val: 16}, {cc: 89, val: 3} ]
+            "Blank Planet": [ {cc: 53, val: 0}, {cc: 54, val: 0}, {cc: 42, val: 21}, {cc: 43, val: 45}, {cc: 44, val: 25}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 38}, {cc: 88, val: 42}, {cc: 29, val: 64}, {cc: 89, val: 106}, {cc: 30, val: 32}, {cc: 31, val: 32}, {cc: 90, val: 64}, {cc: 35, val: 32}, {cc: 117, val: 1} ],
+            "Cave Formation": [ {cc: 53, val: 1}, {cc: 54, val: 127}, {cc: 55, val: 127}, {cc: 26, val: 0}, {cc: 42, val: 42}, {cc: 43, val: 38}, {cc: 44, val: 127}, {cc: 14, val: 42}, {cc: 16, val: 0}, {cc: 19, val: 32}, {cc: 88, val: 0}, {cc: 89, val: 0}, {cc: 90, val: 64}, {cc: 34, val: 64}, {cc: 35, val: 127}, {cc: 36, val: 127} ], 
+            "Copper Drone": [ {cc: 53, val: 3}, {cc: 54, val: 102}, {cc: 42, val: 85}, {cc: 43, val: 13}, {cc: 14, val: 42}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: 85}, {cc: 29, val: 80} ],
+            "Digital Bath": [ {cc: 53, val: 1}, {cc: 54, val: 0}, {cc: 42, val: 85}, {cc: 43, val: 91}, {cc: 14, val: 42}, {cc: 16, val: 38}, {cc: 19, val: 102}, {cc: 88, val: 42}, {cc: 29, val: 80}, {cc: 90, val: 64}, {cc: 35, val: 95} ],
+            "Distorted Vision": [ {cc: 53, val: 4}, {cc: 54, val: 64}, {cc: 55, val: 0}, {cc: 42, val: 21}, {cc: 43, val: 64}, {cc: 44, val: 76}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 51}, {cc: 88, val: 21}, {cc: 28, val: 25}, {cc: 29, val: 102}, {cc: 89, val: 106}, {cc: 30, val: 64}, {cc: 31, val: 32}, {cc: 90, val: 0} ],
+            "Event Horizon": [ {cc: 53, val: 0}, {cc: 54, val: 64}, {cc: 42, val: 42}, {cc: 43, val: 76}, {cc: 14, val: 42}, {cc: 16, val: 76}, {cc: 19, val: 95}, {cc: 88, val: 42}, {cc: 29, val: 90}, {cc: 90, val: 64}, {cc: 35, val: 100} ],
+            "Falling Star": [ {cc: 53, val: 0}, {cc: 54, val: 64}, {cc: 55, val: 127}, {cc: 26, val: 64}, {cc: 42, val: 85}, {cc: 43, val: 0}, {cc: 44, val: 76}, {cc: 14, val: 21}, {cc: 16, val: 76}, {cc: 19, val: 127}, {cc: 88, val: 42}, {cc: 28, val: 51}, {cc: 29, val: 127}, {cc: 89, val: 0}, {cc: 90, val: 106}, {cc: 34, val: 64}, {cc: 35, val: 64} ],
+            "Glass Halo": [ {cc: 53, val: 1}, {cc: 42, val: 106}, {cc: 43, val: 89}, {cc: 14, val: 42}, {cc: 16, val: 64}, {cc: 19, val: 102}, {cc: 88, val: 85}, {cc: 29, val: 80}, {cc: 89, val: 64}, {cc: 31, val: 64} ],
+            "Haunted Forest": [ {cc: 53, val: 3}, {cc: 54, val: 127}, {cc: 55, val: 0}, {cc: 42, val: 127}, {cc: 14, val: 21}, {cc: 16, val: 95}, {cc: 19, val: 127}, {cc: 88, val: 85}, {cc: 28, val: 25}, {cc: 29, val: 102}, {cc: 89, val: 0}, {cc: 90, val: 64}, {cc: 34, val: 82}, {cc: 35, val: 38} ],
+            "High Scores": [ {cc: 53, val: 2}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 127}, {cc: 14, val: 21}, {cc: 16, val: 0}, {cc: 19, val: 64}, {cc: 88, val: 0}, {cc: 89, val: 0}, {cc: 90, val: 21}, {cc: 34, val: 32}, {cc: 35, val: 32}, {cc: 117, val: 1} ],
+            "Hot Buttered": [ {cc: 53, val: 0}, {cc: 54, val: 64}, {cc: 55, val: 0}, {cc: 26, val: 13}, {cc: 42, val: 21}, {cc: 43, val: 25}, {cc: 44, val: 64}, {cc: 14, val: 21}, {cc: 16, val: 64}, {cc: 19, val: 64}, {cc: 88, val: 0}, {cc: 89, val: 85}, {cc: 30, val: 64}, {cc: 31, val: 95}, {cc: 90, val: 0} ],
+            "Ice Storm": [ {cc: 53, val: 1}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 21}, {cc: 43, val: 0}, {cc: 44, val: 127}, {cc: 14, val: 21}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: 0}, {cc: 89, val: 0}, {cc: 90, val: 85}, {cc: 34, val: 76}, {cc: 35, val: 64} ],
+            "Kinda Stringy": [ {cc: 53, val: 0}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 42}, {cc: 43, val: 32}, {cc: 44, val: 32}, {cc: 14, val: 42}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: 42}, {cc: 28, val: 64}, {cc: 29, val: 95}, {cc: 89, val: 0}, {cc: 90, val: 106}, {cc: 34, val: 76}, {cc: 35, val: 76} ],
+            "Massive Monks": [ {cc: 53, val: 3}, {cc: 54, val: 38}, {cc: 55, val: 6}, {cc: 42, val: 0}, {cc: 43, val: 127}, {cc: 44, val: 0}, {cc: 14, val: 0}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: 42}, {cc: 28, val: 64}, {cc: 29, val: 127}, {cc: 89, val: 0}, {cc: 90, val: 85}, {cc: 34, val: 64}, {cc: 35, val: 127} ],
+            "Parabola Pulse": [ {cc: 53, val: 2}, {cc: 54, val: 64}, {cc: 42, val: 21}, {cc: 43, val: 51}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 25}, {cc: 89, val: 64}, {cc: 31, val: 80} ],
+            "Passenger Drone": [ {cc: 53, val: 3}, {cc: 54, val: 114}, {cc: 42, val: 106}, {cc: 43, val: 89}, {cc: 14, val: 42}, {cc: 16, val: 51}, {cc: 19, val: 127}, {cc: 88, val: 21}, {cc: 29, val: 80}, {cc: 90, val: 106}, {cc: 35, val: 64} ],
+            "Pins and Needles": [ {cc: 53, val: 2}, {cc: 54, val: 127}, {cc: 55, val: 127}, {cc: 42, val: 127}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 64}, {cc: 88, val: 0}, {cc: 89, val: 85}, {cc: 30, val: 64}, {cc: 31, val: 127}, {cc: 90, val: 42}, {cc: 34, val: 0}, {cc: 35, val: 0} ],
+            "Smooth EP": [ {cc: 53, val: 1}, {cc: 54, val: 0}, {cc: 42, val: 21}, {cc: 43, val: 51}, {cc: 14, val: 21}, {cc: 16, val: 13}, {cc: 19, val: 76}, {cc: 90, val: 21}, {cc: 35, val: 60} ],
+            "Soopasaw": [ {cc: 53, val: 0}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 21}, {cc: 43, val: 64}, {cc: 44, val: 64}, {cc: 14, val: 0}, {cc: 16, val: 25}, {cc: 19, val: 95}, {cc: 88, val: 42}, {cc: 28, val: 95}, {cc: 29, val: 127}, {cc: 89, val: 64}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 90, val: 42}, {cc: 34, val: 76}, {cc: 35, val: 76} ],
+            "Space Gong": [ {cc: 53, val: 3}, {cc: 54, val: 127}, {cc: 55, val: 19}, {cc: 42, val: 127}, {cc: 14, val: 42}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: 85}, {cc: 28, val: 64}, {cc: 29, val: 127}, {cc: 89, val: 21}, {cc: 30, val: 0}, {cc: 31, val: 127}, {cc: 90, val: 64}, {cc: 34, val: 127}, {cc: 35, val: 64} ],
+            "Stellar Wash": [ {cc: 53, val: 1}, {cc: 42, val: 85}, {cc: 43, val: 38}, {cc: 14, val: 42}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: 21}, {cc: 29, val: 70}, {cc: 90, val: 21}, {cc: 34, val: 127}, {cc: 35, val: 127}, {cc: 36, val: 127} ],
+            "Third Eye Sweep": [ {cc: 53, val: 2}, {cc: 54, val: 25}, {cc: 42, val: 42}, {cc: 43, val: 13}, {cc: 44, val: 102}, {cc: 14, val: 42}, {cc: 16, val: 127}, {cc: 19, val: 64}, {cc: 88, val: 85}, {cc: 29, val: 60}, {cc: 90, val: 21}, {cc: 35, val: 60} ],
+            "Trench Grinder": [ {cc: 53, val: 3}, {cc: 54, val: 95}, {cc: 42, val: 0}, {cc: 43, val: 51}, {cc: 14, val: 21}, {cc: 16, val: 0}, {cc: 19, val: 51}, {cc: 20, val: 64}, {cc: 21, val: 64}, {cc: 89, val: 42}, {cc: 31, val: 40} ],
+            "Upwud": [ {cc: 53, val: 0}, {cc: 54, val: 0}, {cc: 55, val: 127}, {cc: 26, val: 25}, {cc: 42, val: 21}, {cc: 43, val: 0}, {cc: 44, val: 127}, {cc: 14, val: 21}, {cc: 16, val: 51}, {cc: 19, val: 64}, {cc: 88, val: 21}, {cc: 28, val: 51}, {cc: 29, val: 51}, {cc: 89, val: 21}, {cc: 30, val: 25}, {cc: 31, val: 51}, {cc: 90, val: 106}, {cc: 34, val: 64}, {cc: 35, val: 64} ],
+            "White Pony Tape": [ {cc: 53, val: 0}, {cc: 54, val: 38}, {cc: 42, val: 0}, {cc: 43, val: 51}, {cc: 14, val: 21}, {cc: 16, val: 38}, {cc: 19, val: 76}, {cc: 89, val: 106}, {cc: 30, val: 64}, {cc: 31, val: 64} ]
         };
 
         document.getElementById('btn-fs').onclick = () => {
@@ -200,7 +199,8 @@
                     document.getElementById(s.disp).innerText = el.value;
                     states[activeTab][s.id] = el.value;
                     if (midi) {
-                        midi.send([0xB0 + states[activeTab].chan, s.cc, el.value]);
+                        // Forcing strictly parsed integer
+                        midi.send([0xB0 + states[activeTab].chan, s.cc, parseInt(el.value, 10)]);
                         document.getElementById('debug').innerText = `> CH${states[activeTab].chan + 1} CC${s.cc} Val ${el.value}`;
                     }
                 };
@@ -210,7 +210,10 @@
             p.oninput = () => {
                 document.getElementById('v-p').innerText = p.value;
                 states[activeTab].pitch = p.value;
-                if (midi) midi.send([0xE0 + states[activeTab].chan, 0, p.value]);
+                if (midi) {
+                    // Standard Pitch Bend sends Status, LSB (0), MSB (slider value). Forced integer.
+                    midi.send([0xE0 + states[activeTab].chan, 0, parseInt(p.value, 10)]);
+                }
             };
             
             const snapPitch = () => {
@@ -266,10 +269,10 @@
             btn.classList.add('selected');
             if (midi) {
                 if (type === 'cc') {
-                    midi.send([0xB0 + states[activeTab].chan, 27, val]);
+                    midi.send([0xB0 + states[activeTab].chan, 27, parseInt(val, 10)]);
                     document.getElementById('debug').innerText = `> CH${states[activeTab].chan + 1} CC27 Val ${val}`;
                 } else if (type === 'pc') {
-                    midi.send([0xC0 + states[activeTab].chan, val]);
+                    midi.send([0xC0 + states[activeTab].chan, parseInt(val, 10)]);
                     document.getElementById('debug').innerText = `> CH${states[activeTab].chan + 1} PC Val ${val}`;
                 }
             }
