@@ -12,8 +12,8 @@
     <style>
         :root { --accent: #ff3333; --bg: #0d0d0d; --panel: #1a1a1a; }
         .theme-lab { --accent: #a044ff; }
-        /* NTS-1 Specific Theme Colors */
-        .theme-nts { --accent: #FFD700; --panel: #555555; }
+        /* NTS-1 Theme Colors: Retains main black/grays, uses a darker brassy gold */
+        .theme-nts { --accent: #C8A253; }
         
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: background 0.3s; }
         
@@ -32,10 +32,6 @@
         .v-fader-row { display: flex; flex: 1; justify-content: space-around; align-items: stretch; margin-bottom: 10px; min-height: 0; }
         .fader-group { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; }
         .fader-label { color: #888; font-size: 11px; text-transform: uppercase; font-weight: bold; text-align: center; }
-        
-        /* Special handling for NTS-1 Gold UI */
-        .theme-nts .fader-label { color: #000; }
-        .theme-nts .val-box { background: #333; border-color: #222; }
 
         input[type=range][orient=vertical] { appearance: slider-vertical; width: 45px; height: 80%; background: #333; accent-color: var(--accent); }
         .macro-container { border-top: 2px solid #333; padding-top: 15px; text-align: center; }
@@ -47,10 +43,6 @@
         .grid.active { display: grid; }
         .midi-pad { background: #252525; border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 700; height: 90px; cursor: pointer; border-bottom: 5px solid #000; display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px; transition: 0.1s; }
         .midi-pad.selected { background: var(--accent); color: #000; border-bottom: 0px; transform: translateY(4px); }
-        
-        /* NTS-1 Specific Pad Overrides */
-        .theme-nts .midi-pad { background: #000; color: var(--accent); border-bottom: 5px solid #222; border-top: 1px solid #222; border-left: 1px solid #222; border-right: 1px solid #222;}
-        .theme-nts .midi-pad.selected { background: var(--accent); color: #000; border: none; }
 
         #debug { background: #000; color: #0f0; font-family: monospace; font-size: 12px; padding: 8px 20px; border-top: 1px solid #333; height: 35px; flex-shrink: 0; }
     </style>
@@ -78,7 +70,6 @@
                     <input type="range" id="pitch" orient="vertical" min="0" max="127" value="64">
                     <div class="val-box" id="v-p">64</div>
                 </div>
-                <!-- Added 'hide-on-nts' class to elements that shouldn't appear on the NTS-1 tab -->
                 <div class="fader-group hide-on-nts">
                     <div class="fader-label" id="lbl-1">Mod W</div>
                     <input type="range" id="f1" orient="vertical" min="0" max="127" value="0">
@@ -120,7 +111,6 @@
 
         let midi = null; let activeTab = 'v'; let wakeLock = null;
         
-        // Added 'n' state for NTS-1 (Channel 0 = MIDI Ch 1)
         const states = {
             v: { chan: 2, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 64 },
             a: { chan: 0, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 127 },
@@ -133,7 +123,7 @@
         // 25 Alphabetical NTS-1 Presets
         const nP = ["Blank Planet", "Cave Formation", "Copper Drone", "Digital Bath", "Distorted Vision", "Event Horizon", "Falling Star", "Glass Halo", "Haunted Forest", "High Scores", "Hot Buttered", "Ice Storm", "Kinda Stringy", "Massive Monks", "Parabola Pulse", "Passenger Drone", "Pins and Needles", "Smooth EP", "Soopasaw", "Space Gong", "Stellar Wash", "Third Eye Sweep", "Trench Grinder", "Upwud", "White Pony Tape"];
 
-        // NTS-1 Macro Burst Dictionary (Expand values per Korg CC implementation)
+        // NTS-1 Macro Burst Dictionary
         const nts1Presets = {
             "Blank Planet": [ {cc: 53, val: 0}, {cc: 42, val: 18}, {cc: 88, val: 50}, {cc: 117, val: 1} ],
             "Cave Formation": [ {cc: 53, val: 2}, {cc: 42, val: 22}, {cc: 90, val: 4} ], 
@@ -214,15 +204,25 @@
                     }
                 };
             });
+            
             const p = document.getElementById('pitch');
             p.oninput = () => {
                 document.getElementById('v-p').innerText = p.value;
+                states[activeTab].pitch = p.value;
                 if (midi) midi.send([0xE0 + states[activeTab].chan, 0, p.value]);
             };
-            p.onmouseup = p.ontouchend = () => {
-                p.value = 64; document.getElementById('v-p').innerText = 64;
+            
+            // Refactored Pitch Snap Logic to handle state saving and touch-cancels
+            const snapPitch = () => {
+                p.value = 64; 
+                document.getElementById('v-p').innerText = 64;
+                states[activeTab].pitch = 64; // Save the snap to state memory
                 if (midi) midi.send([0xE0 + states[activeTab].chan, 0, 64]);
             };
+            
+            p.onmouseup = snapPitch;
+            p.ontouchend = snapPitch;
+            p.ontouchcancel = snapPitch; 
         }
 
         function setPage(p) {
@@ -232,10 +232,8 @@
             const b = document.getElementById('app-body');
             const mI = document.getElementById('macro');
             
-            // Clean up old theme classes
             b.classList.remove('theme-lab', 'theme-nts');
             
-            // Show/Hide irrelevant faders dynamically based on active tab
             document.querySelectorAll('.hide-on-nts').forEach(el => {
                 el.style.display = (p === 'n') ? 'none' : 'flex';
             });
@@ -253,7 +251,6 @@
                 b.classList.add('theme-nts');
                 document.getElementById('tab-n').classList.add('active');
                 document.getElementById('grid-n').classList.add('active');
-                // The other faders are hidden here, so no label changing is necessary
             }
             
             mI.max = states[p].maxMacro; mI.value = states[p].macro;
