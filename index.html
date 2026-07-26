@@ -111,10 +111,11 @@
 
         let midi = null; let activeTab = 'v'; let wakeLock = null;
         
+        // 0-indexed MIDI Channels (chan: 1 = MIDI Channel 2)
         const states = {
             v: { chan: 2, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 64 },
             a: { chan: 0, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 127 },
-            n: { chan: 0, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 127 } 
+            n: { chan: 1, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 127 } 
         };
 
         const vP = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
@@ -212,11 +213,10 @@
                 if (midi) midi.send([0xE0 + states[activeTab].chan, 0, p.value]);
             };
             
-            // Refactored Pitch Snap Logic to handle state saving and touch-cancels
             const snapPitch = () => {
                 p.value = 64; 
                 document.getElementById('v-p').innerText = 64;
-                states[activeTab].pitch = 64; // Save the snap to state memory
+                states[activeTab].pitch = 64; 
                 if (midi) midi.send([0xE0 + states[activeTab].chan, 0, 64]);
             };
             
