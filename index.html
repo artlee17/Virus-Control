@@ -142,18 +142,18 @@
 
         const vP = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
         const lP = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
-        const nP = ["Blank Planet", "Cave Formation", "Copper Drone", "Digital Bath", "Distorted Vision", "Event Horizon", "Falling Star", "Glass Halo", "Haunted Forest", "High Scores (Arp On: 600)", "Hot Buttered", "Ice Storm (Arp On: 150)", "Kinda Stringy", "Massive Monks", "Parabola Pulse (Arp On)", "Passenger Drone", "Pins and Needles", "Smooth EP", "Soopasaw", "Space Gong", "Stellar Wash", "Third Eye Sweep", "Trench Grinder (Arp On)", "Upwud", "White Pony Tape"];
+        const nP = ["A", "Cave Formation", "Copper Drone", "Digital Bath", "Distorted Vision", "Event Horizon", "Falling Star", "Future Echoes", "Haunted Forest", "High Scores (Arp On: 600)", "Hot Buttered", "Ice Storm (Arp On: 150)", "Kinda Stringy", "Massive Monks", "Parabola Pulse (Arp On)", "Passenger Drone", "Pins and Needles", "Smooth EP", "Soopasaw", "Space Gong", "Stalker", "Storm Outside", "Trench Grinder (Arp On)", "Upwud", "Welp"];
         
        // The mathematically perfect NTS-1 Presets (The 27-Parameter Fortress)
         const nts1Presets = {
-            "Blank Planet": [ 
+            "A": [ 
                 {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 0}, 
                 {cc: 24, val: 0}, {cc: 26, val: 64},
-                {cc: 42, val: 18}, {cc: 43, val: 45}, {cc: 44, val: 25}, {cc: 45, val: 63}, {cc: 46, val: 0}, 
-                {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 38}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
-                {cc: 88, val: "mod:2"}, {cc: 28, val: 64}, {cc: 29, val: 64}, 
-                {cc: 89, val: "dly:5"}, {cc: 30, val: 32}, {cc: 31, val: 32}, {cc: 33, val: 64}, 
-                {cc: 90, val: "rev:2"}, {cc: 34, val: 64}, {cc: 35, val: 32}, {cc: 36, val: 64}, 
+                {cc: 42, val: 127}, {cc: 43, val: 0}, {cc: 44, val: 0}, {cc: 45, val: 63}, {cc: 46, val: 0}, 
+                {cc: 14, val: 50}, {cc: 16, val: 64}, {cc: 19, val: 0}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
+                {cc: 88, val: "mod:4"}, {cc: 28, val: 32}, {cc: 29, val: 127}, 
+                {cc: 89, val: "dly:1"}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 121}, 
+                {cc: 90, val: "rev:0"}, {cc: 34, val: 0}, {cc: 35, val: 0}, {cc: 36, val: 0}, 
                 {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0} 
             ],
             "Cave Formation": [ 
@@ -216,15 +216,15 @@
                 {cc: 90, val: "rev:5"}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64}, 
                 {cc: 117, val: 25}, {cc: 118, val: 64}, {cc: 119, val: 64} 
             ],
-            "Glass Halo": [ 
-                {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 55, val: 0}, 
+            "Future Echoes": [ 
+                {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 0}, 
                 {cc: 24, val: 0}, {cc: 26, val: 64},
-                {cc: 42, val: 90}, {cc: 43, val: 89}, {cc: 44, val: 0}, {cc: 45, val: 63}, {cc: 46, val: 0}, 
-                {cc: 14, val: 50}, {cc: 16, val: 64}, {cc: 19, val: 102}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
-                {cc: 88, val: "mod:3"}, {cc: 28, val: 64}, {cc: 29, val: 80}, 
-                {cc: 89, val: "dly:3"}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 64}, 
+                {cc: 42, val: 127}, {cc: 43, val: 0}, {cc: 44, val: 0}, {cc: 45, val: 63}, {cc: 46, val: 0}, 
+                {cc: 14, val: 50}, {cc: 16, val: 64}, {cc: 19, val: 0}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
+                {cc: 88, val: "mod:4"}, {cc: 28, val: 32}, {cc: 29, val: 127}, 
+                {cc: 89, val: "dly:1"}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 121}, 
                 {cc: 90, val: "rev:0"}, {cc: 34, val: 0}, {cc: 35, val: 0}, {cc: 36, val: 0}, 
-                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0} 
             ],
             "Haunted Forest": [ 
                 {cc: 53, val: "osc:3"}, {cc: 54, val: 127}, {cc: 55, val: 0}, 
@@ -346,22 +346,22 @@
                 {cc: 90, val: "rev:4"}, {cc: 34, val: 127}, {cc: 35, val: 64}, {cc: 36, val: 64}, 
                 {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
             ],
-            "Stellar Wash": [ 
-                {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 55, val: 0}, 
+            "Stalker": [ 
+                {cc: 53, val: "osc:2"}, {cc: 54, val: 64}, {cc: 55, val: 0}, 
                 {cc: 24, val: 0}, {cc: 26, val: 64},
-                {cc: 42, val: 72}, {cc: 43, val: 38}, {cc: 44, val: 0}, {cc: 45, val: 63}, {cc: 46, val: 0}, 
-                {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
-                {cc: 88, val: "mod:1"}, {cc: 28, val: 64}, {cc: 29, val: 70}, 
-                {cc: 89, val: "dly:0"}, {cc: 30, val: 0}, {cc: 31, val: 0}, {cc: 33, val: 0}, 
-                {cc: 90, val: "rev:1"}, {cc: 34, val: 127}, {cc: 35, val: 127}, {cc: 36, val: 127}, 
+                {cc: 42, val: 127}, {cc: 43, val: 0}, {cc: 44, val: 0}, {cc: 45, val: 0}, {cc: 46, val: 0}, 
+                {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
+                {cc: 88, val: "mod:2"}, {cc: 28, val: 64}, {cc: 29, val: 127}, 
+                {cc: 89, val: "dly:4"}, {cc: 30, val: 0}, {cc: 31, val: 127}, {cc: 33, val: 95}, 
+                {cc: 90, val: "rev:0"}, {cc: 34, val: 0}, {cc: 35, val: 0}, {cc: 36, val: 0}, 
                 {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
             ],
-            "Third Eye Sweep": [ 
-                {cc: 53, val: "osc:2"}, {cc: 54, val: 25}, {cc: 55, val: 0}, 
-                {cc: 24, val: 0}, {cc: 26, val: 64},
-                {cc: 42, val: 36}, {cc: 43, val: 13}, {cc: 44, val: 102}, {cc: 45, val: 127}, {cc: 46, val: 25}, 
-                {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 64}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
-                {cc: 88, val: "mod:3"}, {cc: 28, val: 64}, {cc: 29, val: 60}, 
+            "Storm Outside": [ 
+                {cc: 53, val: "osc:3"}, {cc: 54, val: 127}, {cc: 55, val: 64}, 
+                {cc: 24, val: 127}, {cc: 26, val: 0},
+                {cc: 42, val: 0}, {cc: 43, val: 0}, {cc: 44, val: 0}, {cc: 45, val: 32}, {cc: 46, val: 13}, 
+                {cc: 14, val: 25}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 20, val: 10}, {cc: 21, val: 127}, 
+                {cc: 88, val: "mod:1"}, {cc: 28, val: 127}, {cc: 29, val: 127}, 
                 {cc: 89, val: "dly:0"}, {cc: 30, val: 0}, {cc: 31, val: 0}, {cc: 33, val: 0}, 
                 {cc: 90, val: "rev:0"}, {cc: 34, val: 0}, {cc: 35, val: 0}, {cc: 36, val: 0}, 
                 {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
@@ -386,13 +386,13 @@
                 {cc: 90, val: "rev:5"}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64}, 
                 {cc: 117, val: 12}, {cc: 118, val: 0}, {cc: 119, val: 8} 
             ],
-            "White Pony Tape": [ 
-                {cc: 53, val: "osc:0"}, {cc: 54, val: 38}, {cc: 55, val: 0}, 
-                {cc: 24, val: 0}, {cc: 26, val: 64},
-                {cc: 42, val: 127}, {cc: 43, val: 51}, {cc: 44, val: 0}, {cc: 45, val: 63}, {cc: 46, val: 0}, 
-                {cc: 14, val: 25}, {cc: 16, val: 38}, {cc: 19, val: 76}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
+            "Welp": [ 
+                {cc: 53, val: "osc:2"}, {cc: 54, val: 0}, {cc: 55, val: 127}, 
+                {cc: 24, val: 0}, {cc: 26, val: 0},
+                {cc: 42, val: 18}, {cc: 43, val: 25}, {cc: 44, val: 64}, {cc: 45, val: 26}, {cc: 46, val: 51}, 
+                {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 64}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
                 {cc: 88, val: "mod:0"}, {cc: 28, val: 0}, {cc: 29, val: 0}, 
-                {cc: 89, val: "dly:5"}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 64}, 
+                {cc: 89, val: "dly:3"}, {cc: 30, val: 32}, {cc: 31, val: 95}, {cc: 33, val: 64}, 
                 {cc: 90, val: "rev:0"}, {cc: 34, val: 0}, {cc: 35, val: 0}, {cc: 36, val: 0}, 
                 {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
             ]
