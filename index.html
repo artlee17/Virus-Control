@@ -109,9 +109,33 @@
             navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
         }
 
+        // ==============================================================
+        // KORG NTS-1 SDK CONFIGURATION (HARDWARE-LOCKED)
+        // ==============================================================
+        const korgSDK = {
+            userOscillators: 7, // Waves, Waves 2, J6, CC 22, Drone, Octave, Frfn
+            userMods: 1,        // Bitcrusher
+            userDelays: 0,      // (Only the 5 Factory Delays)
+            userReverbs: 2      // Breathe HD, Sniff HD
+        };
+
+        // Dynamic MIDI CC Calculator
+        function getKorgVal(type, index) {
+            let total = 0;
+            // The NTS-1 Mk1 Factory Bases
+            if (type === 'osc') total = 4 + korgSDK.userOscillators;
+            else if (type === 'mod') total = 4 + korgSDK.userMods;
+            else if (type === 'dly') total = 5 + korgSDK.userDelays;
+            else if (type === 'rev') total = 5 + korgSDK.userReverbs;
+            else return index;
+
+            let step = 128 / total;
+            // Finds the absolute center of the MIDI bucket so it never misses
+            return Math.floor((index * step) + (step / 2));
+        }
+
         let midi = null; let activeTab = 'v'; let wakeLock = null;
         
-        // 0-indexed MIDI Channels: Viper=Ch3, AnalogLab=Ch1, NTS1=Ch2
         const states = {
             v: { chan: 2, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 64 },
             a: { chan: 0, f1: 0, f2: 0, f3: 0, macro: 0, pitch: 64, maxMacro: 127 },
@@ -120,44 +144,40 @@
 
         const vP = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
         const lP = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
-        
         const nP = ["Blank Planet", "Cave Formation", "Copper Drone", "Digital Bath", "Distorted Vision", "Event Horizon", "Falling Star", "Glass Halo", "Haunted Forest", "High Scores", "Hot Buttered", "Ice Storm", "Kinda Stringy", "Massive Monks", "Parabola Pulse", "Passenger Drone", "Pins and Needles", "Smooth EP", "Soopasaw", "Space Gong", "Stellar Wash", "Third Eye Sweep", "Trench Grinder", "Upwud", "White Pony Tape"];
 
-      
-
-        // Fully Corrected NTS-1 Mk1 Dictionary (All 25 Patches with Mix Routing)
+        // The mathematically perfect NTS-1 Presets
         const nts1Presets = {
-            "Blank Planet": [ {cc: 53, val: 0}, {cc: 54, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 45}, {cc: 44, val: 25}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 38}, {cc: 88, val: 42}, {cc: 29, val: 64}, {cc: 89, val: 105}, {cc: 30, val: 32}, {cc: 31, val: 32}, {cc: 33, val: 64}, {cc: 90, val: 63}, {cc: 34, val: 64}, {cc: 35, val: 32}, {cc: 36, val: 64}, {cc: 117, val: 1} ],
-            "Cave Formation": [ {cc: 53, val: 25}, {cc: 54, val: 127}, {cc: 55, val: 127}, {cc: 26, val: 0}, {cc: 42, val: 36}, {cc: 43, val: 38}, {cc: 44, val: 127}, {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 32}, {cc: 88, val: 0}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 63}, {cc: 34, val: 64}, {cc: 35, val: 127}, {cc: 36, val: 127} ], 
-            "Copper Drone": [ {cc: 53, val: 75}, {cc: 54, val: 102}, {cc: 42, val: 72}, {cc: 43, val: 13}, {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: 84}, {cc: 29, val: 80}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 0}, {cc: 36, val: 0} ],
-            "Digital Bath": [ {cc: 53, val: 25}, {cc: 54, val: 0}, {cc: 42, val: 72}, {cc: 43, val: 91}, {cc: 14, val: 50}, {cc: 16, val: 38}, {cc: 19, val: 102}, {cc: 88, val: 42}, {cc: 29, val: 80}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 63}, {cc: 34, val: 64}, {cc: 35, val: 95}, {cc: 36, val: 95} ],
-            "Distorted Vision": [ {cc: 53, val: 100}, {cc: 54, val: 64}, {cc: 55, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 64}, {cc: 44, val: 76}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 51}, {cc: 88, val: 105}, {cc: 28, val: 25}, {cc: 29, val: 102}, {cc: 89, val: 105}, {cc: 30, val: 64}, {cc: 31, val: 32}, {cc: 33, val: 64}, {cc: 90, val: 0}, {cc: 36, val: 0} ],
-            "Event Horizon": [ {cc: 53, val: 0}, {cc: 54, val: 64}, {cc: 42, val: 36}, {cc: 43, val: 76}, {cc: 14, val: 50}, {cc: 16, val: 76}, {cc: 19, val: 95}, {cc: 88, val: 42}, {cc: 29, val: 90}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 63}, {cc: 34, val: 64}, {cc: 35, val: 100}, {cc: 36, val: 100} ],
-            "Falling Star": [ {cc: 53, val: 0}, {cc: 54, val: 64}, {cc: 55, val: 127}, {cc: 26, val: 64}, {cc: 42, val: 72}, {cc: 43, val: 0}, {cc: 44, val: 76}, {cc: 14, val: 25}, {cc: 16, val: 76}, {cc: 19, val: 127}, {cc: 88, val: 42}, {cc: 28, val: 51}, {cc: 29, val: 127}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 105}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64} ],
-            "Glass Halo": [ {cc: 53, val: 25}, {cc: 42, val: 90}, {cc: 43, val: 89}, {cc: 14, val: 50}, {cc: 16, val: 64}, {cc: 19, val: 102}, {cc: 88, val: 84}, {cc: 29, val: 80}, {cc: 89, val: 63}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 64}, {cc: 90, val: 0}, {cc: 36, val: 0} ],
-            "Haunted Forest": [ {cc: 53, val: 75}, {cc: 54, val: 127}, {cc: 55, val: 0}, {cc: 42, val: 108}, {cc: 14, val: 25}, {cc: 16, val: 95}, {cc: 19, val: 127}, {cc: 88, val: 84}, {cc: 28, val: 25}, {cc: 29, val: 102}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 63}, {cc: 34, val: 82}, {cc: 35, val: 38}, {cc: 36, val: 64} ],
-            "High Scores": [ {cc: 53, val: 50}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 108}, {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 64}, {cc: 88, val: 0}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 21}, {cc: 34, val: 32}, {cc: 35, val: 32}, {cc: 36, val: 64}, {cc: 117, val: 0} ],
-            "Hot Buttered": [ {cc: 53, val: 0}, {cc: 54, val: 64}, {cc: 55, val: 0}, {cc: 26, val: 13}, {cc: 42, val: 18}, {cc: 43, val: 25}, {cc: 44, val: 64}, {cc: 14, val: 25}, {cc: 16, val: 64}, {cc: 19, val: 64}, {cc: 88, val: 0}, {cc: 89, val: 84}, {cc: 30, val: 64}, {cc: 31, val: 95}, {cc: 33, val: 64}, {cc: 90, val: 0}, {cc: 36, val: 0} ],
-            "Ice Storm": [ {cc: 53, val: 25}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 0}, {cc: 44, val: 127}, {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: 0}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 84}, {cc: 34, val: 76}, {cc: 35, val: 64}, {cc: 36, val: 127} ],
-            "Kinda Stringy": [ {cc: 53, val: 0}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 36}, {cc: 43, val: 32}, {cc: 44, val: 32}, {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: 42}, {cc: 28, val: 64}, {cc: 29, val: 95}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 105}, {cc: 34, val: 76}, {cc: 35, val: 76}, {cc: 36, val: 127} ],
-            "Massive Monks": [ {cc: 53, val: 75}, {cc: 54, val: 38}, {cc: 55, val: 6}, {cc: 42, val: 0}, {cc: 43, val: 127}, {cc: 44, val: 0}, {cc: 14, val: 0}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: 42}, {cc: 28, val: 64}, {cc: 29, val: 127}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 84}, {cc: 34, val: 64}, {cc: 35, val: 127}, {cc: 36, val: 127} ],
-            "Parabola Pulse": [ {cc: 53, val: 50}, {cc: 54, val: 64}, {cc: 42, val: 18}, {cc: 43, val: 51}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 25}, {cc: 89, val: 63}, {cc: 30, val: 64}, {cc: 31, val: 80}, {cc: 33, val: 80}, {cc: 90, val: 0}, {cc: 36, val: 0} ],
-            "Passenger Drone": [ {cc: 53, val: 75}, {cc: 54, val: 114}, {cc: 42, val: 90}, {cc: 43, val: 89}, {cc: 14, val: 50}, {cc: 16, val: 51}, {cc: 19, val: 127}, {cc: 88, val: 21}, {cc: 29, val: 80}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 105}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64} ],
-            "Pins and Needles": [ {cc: 53, val: 50}, {cc: 54, val: 127}, {cc: 55, val: 127}, {cc: 42, val: 108}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 64}, {cc: 88, val: 0}, {cc: 89, val: 84}, {cc: 30, val: 64}, {cc: 31, val: 127}, {cc: 33, val: 127}, {cc: 90, val: 42}, {cc: 34, val: 0}, {cc: 35, val: 0}, {cc: 36, val: 0} ],
-            "Smooth EP": [ {cc: 53, val: 25}, {cc: 54, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 51}, {cc: 14, val: 25}, {cc: 16, val: 13}, {cc: 19, val: 76}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 21}, {cc: 34, val: 64}, {cc: 35, val: 60}, {cc: 36, val: 60} ],
-            "Soopasaw": [ {cc: 53, val: 0}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 64}, {cc: 44, val: 64}, {cc: 14, val: 0}, {cc: 16, val: 25}, {cc: 19, val: 95}, {cc: 88, val: 42}, {cc: 28, val: 95}, {cc: 29, val: 127}, {cc: 89, val: 63}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 0}, {cc: 90, val: 42}, {cc: 34, val: 76}, {cc: 35, val: 76}, {cc: 36, val: 0} ],
-            "Space Gong": [ {cc: 53, val: 75}, {cc: 54, val: 127}, {cc: 55, val: 19}, {cc: 42, val: 108}, {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: 84}, {cc: 28, val: 64}, {cc: 29, val: 127}, {cc: 89, val: 21}, {cc: 30, val: 0}, {cc: 31, val: 127}, {cc: 33, val: 0}, {cc: 90, val: 63}, {cc: 34, val: 127}, {cc: 35, val: 64}, {cc: 36, val: 0} ],
-            "Stellar Wash": [ {cc: 53, val: 25}, {cc: 42, val: 72}, {cc: 43, val: 38}, {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: 21}, {cc: 29, val: 70}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 21}, {cc: 34, val: 127}, {cc: 35, val: 127}, {cc: 36, val: 127} ],
-            "Third Eye Sweep": [ {cc: 53, val: 50}, {cc: 54, val: 25}, {cc: 42, val: 36}, {cc: 43, val: 13}, {cc: 44, val: 102}, {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 64}, {cc: 88, val: 84}, {cc: 29, val: 60}, {cc: 89, val: 0}, {cc: 33, val: 0}, {cc: 90, val: 21}, {cc: 34, val: 64}, {cc: 35, val: 60}, {cc: 36, val: 60} ],
-            "Trench Grinder": [ {cc: 53, val: 75}, {cc: 54, val: 95}, {cc: 42, val: 0}, {cc: 43, val: 51}, {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 51}, {cc: 89, val: 42}, {cc: 30, val: 64}, {cc: 31, val: 40}, {cc: 33, val: 40}, {cc: 90, val: 0}, {cc: 36, val: 0} ],
-            "Upwud": [ {cc: 53, val: 0}, {cc: 54, val: 0}, {cc: 55, val: 127}, {cc: 26, val: 25}, {cc: 42, val: 18}, {cc: 43, val: 0}, {cc: 44, val: 127}, {cc: 14, val: 25}, {cc: 16, val: 51}, {cc: 19, val: 64}, {cc: 88, val: 21}, {cc: 28, val: 51}, {cc: 29, val: 51}, {cc: 89, val: 21}, {cc: 30, val: 25}, {cc: 31, val: 51}, {cc: 33, val: 51}, {cc: 90, val: 105}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64} ],
-            "White Pony Tape": [ {cc: 53, val: 0}, {cc: 54, val: 38}, {cc: 42, val: 0}, {cc: 43, val: 51}, {cc: 14, val: 25}, {cc: 16, val: 38}, {cc: 19, val: 76}, {cc: 89, val: 105}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 64}, {cc: 90, val: 0}, {cc: 36, val: 0} ]
+            "Blank Planet": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 45}, {cc: 44, val: 25}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 38}, {cc: 88, val: "mod:1"}, {cc: 29, val: 64}, {cc: 89, val: "dly:4"}, {cc: 30, val: 32}, {cc: 31, val: 32}, {cc: 33, val: 64}, {cc: 90, val: "rev:2"}, {cc: 34, val: 64}, {cc: 35, val: 32}, {cc: 36, val: 64}, {cc: 117, val: 1} ],
+            "Cave Formation": [ {cc: 53, val: "osc:1"}, {cc: 54, val: 127}, {cc: 55, val: 127}, {cc: 26, val: 0}, {cc: 42, val: 36}, {cc: 43, val: 38}, {cc: 44, val: 127}, {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 32}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, {cc: 34, val: 64}, {cc: 35, val: 127}, {cc: 36, val: 127} ], 
+            "Copper Drone": [ {cc: 53, val: "osc:3"}, {cc: 54, val: 102}, {cc: 42, val: 72}, {cc: 43, val: 13}, {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: "mod:3"}, {cc: 29, val: 80}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ],
+            "Digital Bath": [ {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 42, val: 72}, {cc: 43, val: 91}, {cc: 14, val: 50}, {cc: 16, val: 38}, {cc: 19, val: 102}, {cc: 88, val: "mod:1"}, {cc: 29, val: 80}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, {cc: 34, val: 64}, {cc: 35, val: 95}, {cc: 36, val: 95} ],
+            "Distorted Vision": [ {cc: 53, val: "osc:4"}, {cc: 54, val: 64}, {cc: 55, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 64}, {cc: 44, val: 76}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 51}, {cc: 88, val: "mod:4"}, {cc: 28, val: 25}, {cc: 29, val: 102}, {cc: 89, val: "dly:4"}, {cc: 30, val: 64}, {cc: 31, val: 32}, {cc: 33, val: 64}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ],
+            "Event Horizon": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 64}, {cc: 42, val: 36}, {cc: 43, val: 76}, {cc: 14, val: 50}, {cc: 16, val: 76}, {cc: 19, val: 95}, {cc: 88, val: "mod:1"}, {cc: 29, val: 90}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, {cc: 34, val: 64}, {cc: 35, val: 100}, {cc: 36, val: 100} ],
+            "Falling Star": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 64}, {cc: 55, val: 127}, {cc: 26, val: 64}, {cc: 42, val: 72}, {cc: 43, val: 0}, {cc: 44, val: 76}, {cc: 14, val: 25}, {cc: 16, val: 76}, {cc: 19, val: 127}, {cc: 88, val: "mod:1"}, {cc: 28, val: 51}, {cc: 29, val: 127}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:4"}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64} ],
+            "Glass Halo": [ {cc: 53, val: "osc:1"}, {cc: 42, val: 90}, {cc: 43, val: 89}, {cc: 14, val: 50}, {cc: 16, val: 64}, {cc: 19, val: 102}, {cc: 88, val: "mod:3"}, {cc: 29, val: 80}, {cc: 89, val: "dly:2"}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 64}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ],
+            "Haunted Forest": [ {cc: 53, val: "osc:3"}, {cc: 54, val: 127}, {cc: 55, val: 0}, {cc: 42, val: 108}, {cc: 14, val: 25}, {cc: 16, val: 95}, {cc: 19, val: 127}, {cc: 88, val: "mod:3"}, {cc: 28, val: 25}, {cc: 29, val: 102}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, {cc: 34, val: 82}, {cc: 35, val: 38}, {cc: 36, val: 64} ],
+            "High Scores": [ {cc: 53, val: "osc:2"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 108}, {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 64}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 34, val: 32}, {cc: 35, val: 32}, {cc: 36, val: 64}, {cc: 117, val: 0} ],
+            "Hot Buttered": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 64}, {cc: 55, val: 0}, {cc: 26, val: 13}, {cc: 42, val: 18}, {cc: 43, val: 25}, {cc: 44, val: 64}, {cc: 14, val: 25}, {cc: 16, val: 64}, {cc: 19, val: 64}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:3"}, {cc: 30, val: 64}, {cc: 31, val: 95}, {cc: 33, val: 64}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ],
+            "Ice Storm": [ {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 0}, {cc: 44, val: 127}, {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:3"}, {cc: 34, val: 76}, {cc: 35, val: 64}, {cc: 36, val: 127} ],
+            "Kinda Stringy": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 36}, {cc: 43, val: 32}, {cc: 44, val: 32}, {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: "mod:1"}, {cc: 28, val: 64}, {cc: 29, val: 95}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:4"}, {cc: 34, val: 76}, {cc: 35, val: 76}, {cc: 36, val: 127} ],
+            "Massive Monks": [ {cc: 53, val: "osc:3"}, {cc: 54, val: 38}, {cc: 55, val: 6}, {cc: 42, val: 0}, {cc: 43, val: 127}, {cc: 44, val: 0}, {cc: 14, val: 0}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: "mod:1"}, {cc: 28, val: 64}, {cc: 29, val: 127}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:3"}, {cc: 34, val: 64}, {cc: 35, val: 127}, {cc: 36, val: 127} ],
+            "Parabola Pulse": [ {cc: 53, val: "osc:2"}, {cc: 54, val: 64}, {cc: 42, val: 18}, {cc: 43, val: 51}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 25}, {cc: 88, val: "mod:2"}, {cc: 89, val: "dly:2"}, {cc: 30, val: 64}, {cc: 31, val: 80}, {cc: 33, val: 80}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ],
+            "Passenger Drone": [ {cc: 53, val: "osc:3"}, {cc: 54, val: 114}, {cc: 42, val: 90}, {cc: 43, val: 89}, {cc: 14, val: 50}, {cc: 16, val: 51}, {cc: 19, val: 127}, {cc: 88, val: "mod:0"}, {cc: 29, val: 80}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:4"}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64} ],
+            "Pins and Needles": [ {cc: 53, val: "osc:2"}, {cc: 54, val: 127}, {cc: 55, val: 127}, {cc: 42, val: 108}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 64}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:3"}, {cc: 30, val: 64}, {cc: 31, val: 127}, {cc: 33, val: 127}, {cc: 90, val: "rev:1"}, {cc: 34, val: 0}, {cc: 35, val: 0}, {cc: 36, val: 0} ],
+            "Smooth EP": [ {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 51}, {cc: 14, val: 25}, {cc: 16, val: 13}, {cc: 19, val: 76}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 34, val: 64}, {cc: 35, val: 60}, {cc: 36, val: 60} ],
+            "Soopasaw": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 64}, {cc: 44, val: 64}, {cc: 14, val: 0}, {cc: 16, val: 25}, {cc: 19, val: 95}, {cc: 88, val: "mod:1"}, {cc: 28, val: 95}, {cc: 29, val: 127}, {cc: 89, val: "dly:2"}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 0}, {cc: 90, val: "rev:1"}, {cc: 34, val: 76}, {cc: 35, val: 76}, {cc: 36, val: 0} ],
+            "Space Gong": [ {cc: 53, val: "osc:3"}, {cc: 54, val: 127}, {cc: 55, val: 19}, {cc: 42, val: 108}, {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: "mod:3"}, {cc: 28, val: 64}, {cc: 29, val: 127}, {cc: 89, val: "dly:1"}, {cc: 30, val: 0}, {cc: 31, val: 127}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, {cc: 34, val: 127}, {cc: 35, val: 64}, {cc: 36, val: 0} ],
+            "Stellar Wash": [ {cc: 53, val: "osc:1"}, {cc: 42, val: 72}, {cc: 43, val: 38}, {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: "mod:0"}, {cc: 29, val: 70}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 34, val: 127}, {cc: 35, val: 127}, {cc: 36, val: 127} ],
+            "Third Eye Sweep": [ {cc: 53, val: "osc:2"}, {cc: 54, val: 25}, {cc: 42, val: 36}, {cc: 43, val: 13}, {cc: 44, val: 102}, {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 64}, {cc: 88, val: "mod:3"}, {cc: 29, val: 60}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 34, val: 64}, {cc: 35, val: 60}, {cc: 36, val: 60} ],
+            "Trench Grinder": [ {cc: 53, val: "osc:3"}, {cc: 54, val: 95}, {cc: 42, val: 0}, {cc: 43, val: 51}, {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 51}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:1"}, {cc: 30, val: 64}, {cc: 31, val: 40}, {cc: 33, val: 40}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ],
+            "Upwud": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 127}, {cc: 26, val: 25}, {cc: 42, val: 18}, {cc: 43, val: 0}, {cc: 44, val: 127}, {cc: 14, val: 25}, {cc: 16, val: 51}, {cc: 19, val: 64}, {cc: 88, val: "mod:0"}, {cc: 28, val: 51}, {cc: 29, val: 51}, {cc: 89, val: "dly:0"}, {cc: 30, val: 25}, {cc: 31, val: 51}, {cc: 33, val: 51}, {cc: 90, val: "rev:4"}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64} ],
+            "White Pony Tape": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 38}, {cc: 42, val: 0}, {cc: 43, val: 51}, {cc: 14, val: 25}, {cc: 16, val: 38}, {cc: 19, val: 76}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:4"}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 64}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ]
         };
 
-        // Asynchronous delay function to manage DIN MIDI bandwidth
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
-        // Two-Stage DSP Loader optimized for DIN MIDI physical speed
+        // Upgraded Burst Logic with Dynamic Calculation
         async function sendBurst(name, btn) {
             btn.parentElement.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
@@ -165,26 +185,29 @@
             
             if (midi && burst) {
                 document.getElementById('debug').innerText = `> Init DSP: ${name}...`;
-
                 const typeCCs = [53, 42, 14, 88, 89, 90, 117];
 
-                // STAGE 1: Send only the algorithm Types
+                // STAGE 1: Load Algorithms using math calculator
                 for (let i = 0; i < burst.length; i++) {
                     if (typeCCs.includes(burst[i].cc)) {
-                        midi.send([0xB0 + states['n'].chan, burst[i].cc, burst[i].val]);
-                        // Increased to 20ms to allow physical DIN cable transmission
+                        let finalVal = burst[i].val;
+                        // Dynamically calculate the CC value if a string is provided
+                        if (typeof finalVal === 'string') {
+                            let parts = finalVal.split(':');
+                            finalVal = getKorgVal(parts[0], parseInt(parts[1], 10));
+                        }
+                        midi.send([0xB0 + states['n'].chan, burst[i].cc, finalVal]);
                         await delay(20); 
                     }
                 }
 
-                // THE GOLDEN PAUSE: Give the Korg DSP 100ms to swap algorithms
+                // Wait 100ms for Korg DSP to clear its cache
                 await delay(100);
 
-                // STAGE 2: Send all the knob parameters and dry/wet mixes
+                // STAGE 2: Set physical parameters and mixes
                 for (let i = 0; i < burst.length; i++) {
                     if (!typeCCs.includes(burst[i].cc)) {
                         midi.send([0xB0 + states['n'].chan, burst[i].cc, burst[i].val]);
-                        // Increased to 20ms to allow physical DIN cable transmission
                         await delay(20); 
                     }
                 }
@@ -192,6 +215,10 @@
                 document.getElementById('debug').innerText = `> NTS-1 Burst Complete: ${name}`;
             }
         }
+
+        // ==============================================================
+        // INITIALIZATION AND BINDING
+        // ==============================================================
 
         document.getElementById('btn-fs').onclick = () => {
             const doc = document.documentElement;
@@ -240,7 +267,6 @@
                     document.getElementById(s.disp).innerText = el.value;
                     states[activeTab][s.id] = el.value;
                     if (midi) {
-                        // Forcing strictly parsed integer
                         midi.send([0xB0 + states[activeTab].chan, s.cc, parseInt(el.value, 10)]);
                         document.getElementById('debug').innerText = `> CH${states[activeTab].chan + 1} CC${s.cc} Val ${el.value}`;
                     }
@@ -251,10 +277,7 @@
             p.oninput = () => {
                 document.getElementById('v-p').innerText = p.value;
                 states[activeTab].pitch = p.value;
-                if (midi) {
-                    // Standard Pitch Bend sends Status, LSB (0), MSB (slider value). Forced integer.
-                    midi.send([0xE0 + states[activeTab].chan, 0, parseInt(p.value, 10)]);
-                }
+                if (midi) midi.send([0xE0 + states[activeTab].chan, 0, parseInt(p.value, 10)]);
             };
             
             const snapPitch = () => {
@@ -316,18 +339,6 @@
                     midi.send([0xC0 + states[activeTab].chan, parseInt(val, 10)]);
                     document.getElementById('debug').innerText = `> CH${states[activeTab].chan + 1} PC Val ${val}`;
                 }
-            }
-        }
-
-        function sendBurst(name, btn) {
-            btn.parentElement.querySelectorAll('.midi-pad').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            const burst = nts1Presets[name];
-            if (midi && burst) {
-                burst.forEach(msg => {
-                    midi.send([0xB0 + states['n'].chan, msg.cc, msg.val]);
-                });
-                document.getElementById('debug').innerText = `> NTS-1 Burst: ${name}`;
             }
         }
 
