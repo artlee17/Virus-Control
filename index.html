@@ -146,33 +146,181 @@
         const lP = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
         const nP = ["Blank Planet", "Cave Formation", "Copper Drone", "Digital Bath", "Distorted Vision", "Event Horizon", "Falling Star", "Glass Halo", "Haunted Forest", "High Scores", "Hot Buttered", "Ice Storm", "Kinda Stringy", "Massive Monks", "Parabola Pulse", "Passenger Drone", "Pins and Needles", "Smooth EP", "Soopasaw", "Space Gong", "Stellar Wash", "Third Eye Sweep", "Trench Grinder", "Upwud", "White Pony Tape"];
 
-        // The mathematically perfect NTS-1 Presets
+        // The mathematically perfect NTS-1 Presets (Audited Arp & Filter Sweeps)
         const nts1Presets = {
-            "Blank Planet": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 45}, {cc: 44, val: 25}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 38}, {cc: 88, val: "mod:1"}, {cc: 29, val: 64}, {cc: 89, val: "dly:4"}, {cc: 30, val: 32}, {cc: 31, val: 32}, {cc: 33, val: 64}, {cc: 90, val: "rev:2"}, {cc: 34, val: 64}, {cc: 35, val: 32}, {cc: 36, val: 64}, {cc: 117, val: 1} ],
-            "Cave Formation": [ {cc: 53, val: "osc:1"}, {cc: 54, val: 127}, {cc: 55, val: 127}, {cc: 26, val: 0}, {cc: 42, val: 36}, {cc: 43, val: 38}, {cc: 44, val: 127}, {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 32}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, {cc: 34, val: 64}, {cc: 35, val: 127}, {cc: 36, val: 127} ], 
-            "Copper Drone": [ {cc: 53, val: "osc:3"}, {cc: 54, val: 102}, {cc: 42, val: 72}, {cc: 43, val: 13}, {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: "mod:3"}, {cc: 29, val: 80}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ],
-            "Digital Bath": [ {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 42, val: 72}, {cc: 43, val: 91}, {cc: 14, val: 50}, {cc: 16, val: 38}, {cc: 19, val: 102}, {cc: 88, val: "mod:1"}, {cc: 29, val: 80}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, {cc: 34, val: 64}, {cc: 35, val: 95}, {cc: 36, val: 95} ],
-            "Distorted Vision": [ {cc: 53, val: "osc:4"}, {cc: 54, val: 64}, {cc: 55, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 64}, {cc: 44, val: 76}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 51}, {cc: 88, val: "mod:4"}, {cc: 28, val: 25}, {cc: 29, val: 102}, {cc: 89, val: "dly:4"}, {cc: 30, val: 64}, {cc: 31, val: 32}, {cc: 33, val: 64}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ],
-            "Event Horizon": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 64}, {cc: 42, val: 36}, {cc: 43, val: 76}, {cc: 14, val: 50}, {cc: 16, val: 76}, {cc: 19, val: 95}, {cc: 88, val: "mod:1"}, {cc: 29, val: 90}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, {cc: 34, val: 64}, {cc: 35, val: 100}, {cc: 36, val: 100} ],
-            "Falling Star": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 64}, {cc: 55, val: 127}, {cc: 26, val: 64}, {cc: 42, val: 72}, {cc: 43, val: 0}, {cc: 44, val: 76}, {cc: 14, val: 25}, {cc: 16, val: 76}, {cc: 19, val: 127}, {cc: 88, val: "mod:1"}, {cc: 28, val: 51}, {cc: 29, val: 127}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:4"}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64} ],
-            "Glass Halo": [ {cc: 53, val: "osc:1"}, {cc: 42, val: 90}, {cc: 43, val: 89}, {cc: 14, val: 50}, {cc: 16, val: 64}, {cc: 19, val: 102}, {cc: 88, val: "mod:3"}, {cc: 29, val: 80}, {cc: 89, val: "dly:2"}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 64}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ],
-            "Haunted Forest": [ {cc: 53, val: "osc:3"}, {cc: 54, val: 127}, {cc: 55, val: 0}, {cc: 42, val: 108}, {cc: 14, val: 25}, {cc: 16, val: 95}, {cc: 19, val: 127}, {cc: 88, val: "mod:3"}, {cc: 28, val: 25}, {cc: 29, val: 102}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, {cc: 34, val: 82}, {cc: 35, val: 38}, {cc: 36, val: 64} ],
-            "High Scores": [ {cc: 53, val: "osc:2"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 108}, {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 64}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 34, val: 32}, {cc: 35, val: 32}, {cc: 36, val: 64}, {cc: 117, val: 0} ],
-            "Hot Buttered": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 64}, {cc: 55, val: 0}, {cc: 26, val: 13}, {cc: 42, val: 18}, {cc: 43, val: 25}, {cc: 44, val: 64}, {cc: 14, val: 25}, {cc: 16, val: 64}, {cc: 19, val: 64}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:3"}, {cc: 30, val: 64}, {cc: 31, val: 95}, {cc: 33, val: 64}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ],
-            "Ice Storm": [ {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 0}, {cc: 44, val: 127}, {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:3"}, {cc: 34, val: 76}, {cc: 35, val: 64}, {cc: 36, val: 127} ],
-            "Kinda Stringy": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 36}, {cc: 43, val: 32}, {cc: 44, val: 32}, {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: "mod:1"}, {cc: 28, val: 64}, {cc: 29, val: 95}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:4"}, {cc: 34, val: 76}, {cc: 35, val: 76}, {cc: 36, val: 127} ],
-            "Massive Monks": [ {cc: 53, val: "osc:3"}, {cc: 54, val: 38}, {cc: 55, val: 6}, {cc: 42, val: 0}, {cc: 43, val: 127}, {cc: 44, val: 0}, {cc: 14, val: 0}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: "mod:1"}, {cc: 28, val: 64}, {cc: 29, val: 127}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:3"}, {cc: 34, val: 64}, {cc: 35, val: 127}, {cc: 36, val: 127} ],
-            "Parabola Pulse": [ {cc: 53, val: "osc:2"}, {cc: 54, val: 64}, {cc: 42, val: 18}, {cc: 43, val: 51}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 25}, {cc: 88, val: "mod:2"}, {cc: 89, val: "dly:2"}, {cc: 30, val: 64}, {cc: 31, val: 80}, {cc: 33, val: 80}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ],
-            "Passenger Drone": [ {cc: 53, val: "osc:3"}, {cc: 54, val: 114}, {cc: 42, val: 90}, {cc: 43, val: 89}, {cc: 14, val: 50}, {cc: 16, val: 51}, {cc: 19, val: 127}, {cc: 88, val: "mod:0"}, {cc: 29, val: 80}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:4"}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64} ],
-            "Pins and Needles": [ {cc: 53, val: "osc:2"}, {cc: 54, val: 127}, {cc: 55, val: 127}, {cc: 42, val: 108}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 64}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:3"}, {cc: 30, val: 64}, {cc: 31, val: 127}, {cc: 33, val: 127}, {cc: 90, val: "rev:1"}, {cc: 34, val: 0}, {cc: 35, val: 0}, {cc: 36, val: 0} ],
-            "Smooth EP": [ {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 51}, {cc: 14, val: 25}, {cc: 16, val: 13}, {cc: 19, val: 76}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 34, val: 64}, {cc: 35, val: 60}, {cc: 36, val: 60} ],
-            "Soopasaw": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 64}, {cc: 44, val: 64}, {cc: 14, val: 0}, {cc: 16, val: 25}, {cc: 19, val: 95}, {cc: 88, val: "mod:1"}, {cc: 28, val: 95}, {cc: 29, val: 127}, {cc: 89, val: "dly:2"}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 0}, {cc: 90, val: "rev:1"}, {cc: 34, val: 76}, {cc: 35, val: 76}, {cc: 36, val: 0} ],
-            "Space Gong": [ {cc: 53, val: "osc:3"}, {cc: 54, val: 127}, {cc: 55, val: 19}, {cc: 42, val: 108}, {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: "mod:3"}, {cc: 28, val: 64}, {cc: 29, val: 127}, {cc: 89, val: "dly:1"}, {cc: 30, val: 0}, {cc: 31, val: 127}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, {cc: 34, val: 127}, {cc: 35, val: 64}, {cc: 36, val: 0} ],
-            "Stellar Wash": [ {cc: 53, val: "osc:1"}, {cc: 42, val: 72}, {cc: 43, val: 38}, {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: "mod:0"}, {cc: 29, val: 70}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 34, val: 127}, {cc: 35, val: 127}, {cc: 36, val: 127} ],
-            "Third Eye Sweep": [ {cc: 53, val: "osc:2"}, {cc: 54, val: 25}, {cc: 42, val: 36}, {cc: 43, val: 13}, {cc: 44, val: 102}, {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 64}, {cc: 88, val: "mod:3"}, {cc: 29, val: 60}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 34, val: 64}, {cc: 35, val: 60}, {cc: 36, val: 60} ],
-            "Trench Grinder": [ {cc: 53, val: "osc:3"}, {cc: 54, val: 95}, {cc: 42, val: 0}, {cc: 43, val: 51}, {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 51}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:1"}, {cc: 30, val: 64}, {cc: 31, val: 40}, {cc: 33, val: 40}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ],
-            "Upwud": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 127}, {cc: 26, val: 25}, {cc: 42, val: 18}, {cc: 43, val: 0}, {cc: 44, val: 127}, {cc: 14, val: 25}, {cc: 16, val: 51}, {cc: 19, val: 64}, {cc: 88, val: "mod:0"}, {cc: 28, val: 51}, {cc: 29, val: 51}, {cc: 89, val: "dly:0"}, {cc: 30, val: 25}, {cc: 31, val: 51}, {cc: 33, val: 51}, {cc: 90, val: "rev:4"}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64} ],
-            "White Pony Tape": [ {cc: 53, val: "osc:0"}, {cc: 54, val: 38}, {cc: 42, val: 0}, {cc: 43, val: 51}, {cc: 14, val: 25}, {cc: 16, val: 38}, {cc: 19, val: 76}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:4"}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 64}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0} ]
+            "Blank Planet": [ 
+                {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 45}, {cc: 44, val: 25}, 
+                {cc: 45, val: 0}, {cc: 46, val: 0}, 
+                {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 38}, {cc: 88, val: "mod:1"}, {cc: 29, val: 64}, 
+                {cc: 89, val: "dly:4"}, {cc: 30, val: 32}, {cc: 31, val: 32}, {cc: 33, val: 64}, {cc: 90, val: "rev:2"}, 
+                {cc: 34, val: 64}, {cc: 35, val: 32}, {cc: 36, val: 64}, 
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0} 
+            ],
+            "Cave Formation": [ 
+                {cc: 53, val: "osc:1"}, {cc: 54, val: 127}, {cc: 55, val: 127}, {cc: 26, val: 0}, {cc: 42, val: 36}, 
+                {cc: 43, val: 38}, {cc: 44, val: 127}, {cc: 45, val: 30}, {cc: 46, val: 15}, 
+                {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 32}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:0"}, 
+                {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, {cc: 34, val: 64}, {cc: 35, val: 127}, {cc: 36, val: 127},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ], 
+            "Copper Drone": [ 
+                {cc: 53, val: "osc:3"}, {cc: 54, val: 102}, {cc: 42, val: 72}, {cc: 43, val: 13}, {cc: 44, val: 0},
+                {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 127}, 
+                {cc: 88, val: "mod:3"}, {cc: 29, val: 80}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Digital Bath": [ 
+                {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 42, val: 72}, {cc: 43, val: 91}, {cc: 44, val: 0},
+                {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 50}, {cc: 16, val: 38}, {cc: 19, val: 102}, 
+                {cc: 88, val: "mod:1"}, {cc: 29, val: 80}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, 
+                {cc: 34, val: 64}, {cc: 35, val: 95}, {cc: 36, val: 95},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Distorted Vision": [ 
+                {cc: 53, val: "osc:4"}, {cc: 54, val: 64}, {cc: 55, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 64}, 
+                {cc: 44, val: 76}, {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 51}, 
+                {cc: 88, val: "mod:4"}, {cc: 28, val: 25}, {cc: 29, val: 102}, {cc: 89, val: "dly:4"}, {cc: 30, val: 64}, 
+                {cc: 31, val: 32}, {cc: 33, val: 64}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Event Horizon": [ 
+                {cc: 53, val: "osc:0"}, {cc: 54, val: 64}, {cc: 42, val: 36}, {cc: 43, val: 76}, {cc: 44, val: 0},
+                {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 50}, {cc: 16, val: 76}, {cc: 19, val: 95}, 
+                {cc: 88, val: "mod:1"}, {cc: 29, val: 90}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, 
+                {cc: 34, val: 64}, {cc: 35, val: 100}, {cc: 36, val: 100},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Falling Star": [ 
+                {cc: 53, val: "osc:0"}, {cc: 54, val: 64}, {cc: 55, val: 127}, {cc: 26, val: 64}, {cc: 42, val: 72}, 
+                {cc: 43, val: 0}, {cc: 44, val: 76}, {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 25}, 
+                {cc: 16, val: 76}, {cc: 19, val: 127}, {cc: 88, val: "mod:1"}, {cc: 28, val: 51}, {cc: 29, val: 127}, 
+                {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:4"}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64},
+                {cc: 117, val: 25}, {cc: 118, val: 0}, {cc: 119, val: 8} 
+            ],
+            "Glass Halo": [ 
+                {cc: 53, val: "osc:1"}, {cc: 42, val: 90}, {cc: 43, val: 89}, {cc: 44, val: 0}, {cc: 45, val: 0}, {cc: 46, val: 0},
+                {cc: 14, val: 50}, {cc: 16, val: 64}, {cc: 19, val: 102}, {cc: 88, val: "mod:3"}, {cc: 29, val: 80}, 
+                {cc: 89, val: "dly:2"}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 64}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Haunted Forest": [ 
+                {cc: 53, val: "osc:3"}, {cc: 54, val: 127}, {cc: 55, val: 0}, {cc: 42, val: 108}, {cc: 43, val: 0}, {cc: 44, val: 0},
+                {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 25}, {cc: 16, val: 95}, {cc: 19, val: 127}, {cc: 88, val: "mod:3"}, 
+                {cc: 28, val: 25}, {cc: 29, val: 102}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, 
+                {cc: 34, val: 82}, {cc: 35, val: 38}, {cc: 36, val: 64},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "High Scores": [ 
+                {cc: 53, val: "osc:2"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 108}, {cc: 43, val: 0}, {cc: 44, val: 0},
+                {cc: 45, val: 80}, {cc: 46, val: 100}, {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 64}, 
+                {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 34, val: 32}, 
+                {cc: 35, val: 32}, {cc: 36, val: 64}, 
+                {cc: 117, val: 96}, {cc: 118, val: 0}, {cc: 119, val: 8} 
+            ],
+            "Hot Buttered": [ 
+                {cc: 53, val: "osc:0"}, {cc: 54, val: 64}, {cc: 55, val: 0}, {cc: 26, val: 13}, {cc: 42, val: 18}, 
+                {cc: 43, val: 25}, {cc: 44, val: 64}, {cc: 45, val: 40}, {cc: 46, val: 50}, {cc: 14, val: 25}, 
+                {cc: 16, val: 64}, {cc: 19, val: 64}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:3"}, {cc: 30, val: 64}, 
+                {cc: 31, val: 95}, {cc: 33, val: 64}, {cc: 90, val: "rev:0"}, {cc: 36, val: 0},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Ice Storm": [ 
+                {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 0}, 
+                {cc: 44, val: 127}, {cc: 45, val: 127}, {cc: 46, val: 85}, 
+                {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:0"}, 
+                {cc: 33, val: 0}, {cc: 90, val: "rev:3"}, {cc: 34, val: 76}, {cc: 35, val: 64}, {cc: 36, val: 127},
+                {cc: 117, val: 96}, {cc: 118, val: 0}, {cc: 119, val: 4} 
+            ],
+            "Kinda Stringy": [ 
+                {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 36}, {cc: 43, val: 32}, 
+                {cc: 44, val: 32}, {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 50}, {cc: 16, val: 127}, 
+                {cc: 19, val: 127}, {cc: 88, val: "mod:1"}, {cc: 28, val: 64}, {cc: 29, val: 95}, {cc: 89, val: "dly:0"}, 
+                {cc: 33, val: 0}, {cc: 90, val: "rev:4"}, {cc: 34, val: 76}, {cc: 35, val: 76}, {cc: 36, val: 127},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Massive Monks": [ 
+                {cc: 53, val: "osc:3"}, {cc: 54, val: 38}, {cc: 55, val: 6}, {cc: 42, val: 0}, {cc: 43, val: 127}, 
+                {cc: 44, val: 0}, {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 0}, {cc: 16, val: 127}, 
+                {cc: 19, val: 127}, {cc: 88, val: "mod:1"}, {cc: 28, val: 64}, {cc: 29, val: 127}, {cc: 89, val: "dly:0"}, 
+                {cc: 33, val: 0}, {cc: 90, val: "rev:3"}, {cc: 34, val: 64}, {cc: 35, val: 127}, {cc: 36, val: 127},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Parabola Pulse": [ 
+                {cc: 53, val: "osc:2"}, {cc: 54, val: 64}, {cc: 42, val: 18}, {cc: 43, val: 51}, {cc: 44, val: 0}, 
+                {cc: 45, val: 100}, {cc: 46, val: 64}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 25}, 
+                {cc: 88, val: "mod:2"}, {cc: 89, val: "dly:2"}, {cc: 30, val: 64}, {cc: 31, val: 80}, {cc: 33, val: 80}, 
+                {cc: 90, val: "rev:0"}, {cc: 36, val: 0},
+                {cc: 117, val: 38}, {cc: 118, val: 0}, {cc: 119, val: 6} 
+            ],
+            "Passenger Drone": [ 
+                {cc: 53, val: "osc:3"}, {cc: 54, val: 114}, {cc: 42, val: 90}, {cc: 43, val: 89}, {cc: 44, val: 0},
+                {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 50}, {cc: 16, val: 51}, {cc: 19, val: 127}, 
+                {cc: 88, val: "mod:0"}, {cc: 29, val: 80}, {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:4"}, 
+                {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Pins and Needles": [ 
+                {cc: 53, val: "osc:2"}, {cc: 54, val: 127}, {cc: 55, val: 127}, {cc: 42, val: 108}, {cc: 43, val: 0}, {cc: 44, val: 0},
+                {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 64}, {cc: 88, val: "mod:0"}, 
+                {cc: 89, val: "dly:3"}, {cc: 30, val: 64}, {cc: 31, val: 127}, {cc: 33, val: 127}, {cc: 90, val: "rev:1"}, 
+                {cc: 34, val: 0}, {cc: 35, val: 0}, {cc: 36, val: 0},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Smooth EP": [ 
+                {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 51}, {cc: 44, val: 0}, {cc: 45, val: 0}, {cc: 46, val: 0},
+                {cc: 14, val: 25}, {cc: 16, val: 13}, {cc: 19, val: 76}, {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:0"}, 
+                {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 34, val: 64}, {cc: 35, val: 60}, {cc: 36, val: 60},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Soopasaw": [ 
+                {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 64}, 
+                {cc: 44, val: 64}, {cc: 45, val: 20}, {cc: 46, val: 40}, {cc: 14, val: 0}, {cc: 16, val: 25}, 
+                {cc: 19, val: 95}, {cc: 88, val: "mod:1"}, {cc: 28, val: 95}, {cc: 29, val: 127}, {cc: 89, val: "dly:2"}, 
+                {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 0}, {cc: 90, val: "rev:1"}, {cc: 34, val: 76}, {cc: 35, val: 76}, {cc: 36, val: 0},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Space Gong": [ 
+                {cc: 53, val: "osc:3"}, {cc: 54, val: 127}, {cc: 55, val: 19}, {cc: 42, val: 108}, {cc: 43, val: 0}, {cc: 44, val: 0},
+                {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 50}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 88, val: "mod:3"}, 
+                {cc: 28, val: 64}, {cc: 29, val: 127}, {cc: 89, val: "dly:1"}, {cc: 30, val: 0}, {cc: 31, val: 127}, 
+                {cc: 33, val: 0}, {cc: 90, val: "rev:2"}, {cc: 34, val: 127}, {cc: 35, val: 64}, {cc: 36, val: 0},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Stellar Wash": [ 
+                {cc: 53, val: "osc:1"}, {cc: 42, val: 72}, {cc: 43, val: 38}, {cc: 44, val: 0}, {cc: 45, val: 0}, {cc: 46, val: 0},
+                {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 88, val: "mod:0"}, {cc: 29, val: 70}, 
+                {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 34, val: 127}, {cc: 35, val: 127}, {cc: 36, val: 127},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Third Eye Sweep": [ 
+                {cc: 53, val: "osc:2"}, {cc: 54, val: 25}, {cc: 42, val: 36}, {cc: 43, val: 13}, {cc: 44, val: 102}, 
+                {cc: 45, val: 127}, {cc: 46, val: 25}, 
+                {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 64}, {cc: 88, val: "mod:3"}, {cc: 29, val: 60}, 
+                {cc: 89, val: "dly:0"}, {cc: 33, val: 0}, {cc: 90, val: "rev:0"}, {cc: 34, val: 64}, {cc: 35, val: 60}, {cc: 36, val: 60},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ],
+            "Trench Grinder": [ 
+                {cc: 53, val: "osc:3"}, {cc: 54, val: 95}, {cc: 42, val: 0}, {cc: 43, val: 51}, {cc: 44, val: 0},
+                {cc: 45, val: 50}, {cc: 46, val: 50}, {cc: 14, val: 25}, {cc: 16, val: 0}, {cc: 19, val: 51}, 
+                {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:1"}, {cc: 30, val: 64}, {cc: 31, val: 40}, {cc: 33, val: 40}, 
+                {cc: 90, val: "rev:0"}, {cc: 36, val: 0},
+                {cc: 117, val: 96}, {cc: 118, val: 0}, {cc: 119, val: 12} 
+            ],
+            "Upwud": [ 
+                {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 127}, {cc: 26, val: 25}, {cc: 42, val: 18}, 
+                {cc: 43, val: 0}, {cc: 44, val: 127}, {cc: 45, val: 80}, {cc: 46, val: 80}, {cc: 14, val: 25}, 
+                {cc: 16, val: 51}, {cc: 19, val: 64}, {cc: 88, val: "mod:0"}, {cc: 28, val: 51}, {cc: 29, val: 51}, 
+                {cc: 89, val: "dly:0"}, {cc: 30, val: 25}, {cc: 31, val: 51}, {cc: 33, val: 51}, {cc: 90, val: "rev:4"}, 
+                {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 64},
+                {cc: 117, val: 12}, {cc: 118, val: 0}, {cc: 119, val: 8} 
+            ],
+            "White Pony Tape": [ 
+                {cc: 53, val: "osc:0"}, {cc: 54, val: 38}, {cc: 42, val: 0}, {cc: 43, val: 51}, {cc: 44, val: 0},
+                {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 25}, {cc: 16, val: 38}, {cc: 19, val: 76}, 
+                {cc: 88, val: "mod:0"}, {cc: 89, val: "dly:4"}, {cc: 30, val: 64}, {cc: 31, val: 64}, {cc: 33, val: 64}, 
+                {cc: 90, val: "rev:0"}, {cc: 36, val: 0},
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+            ]
         };
 
         const delay = ms => new Promise(res => setTimeout(res, ms));
