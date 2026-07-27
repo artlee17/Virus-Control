@@ -144,7 +144,7 @@
         const lP = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
         const nP = ["Blank Planet", "Cave Formation", "Copper Drone", "Digital Bath", "Distorted Vision", "Event Horizon", "Falling Star", "Glass Halo", "Haunted Forest", "High Scores", "Hot Buttered", "Ice Storm", "Kinda Stringy", "Massive Monks", "Parabola Pulse", "Passenger Drone", "Pins and Needles", "Smooth EP", "Soopasaw", "Space Gong", "Stellar Wash", "Third Eye Sweep", "Trench Grinder", "Upwud", "White Pony Tape"];
 
-        // The mathematically perfect NTS-1 Presets (Audited Effects Offsets)
+        // The mathematically perfect NTS-1 Presets 
         const nts1Presets = {
             "Blank Planet": [ 
                 {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 42, val: 18}, {cc: 43, val: 45}, {cc: 44, val: 25}, 
@@ -229,13 +229,30 @@
                 {cc: 33, val: 0}, {cc: 90, val: "rev:4"}, {cc: 34, val: 76}, {cc: 35, val: 64}, {cc: 36, val: 127},
                 {cc: 117, val: 96}, {cc: 118, val: 0}, {cc: 119, val: 4} 
             ],
+
+            // -------------------------------------------------------------
+            // THE NEW GOLD STANDARD TEMPLATE
+            // -------------------------------------------------------------
             "Kinda Stringy": [ 
-                {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 0}, {cc: 42, val: 36}, {cc: 43, val: 32}, 
-                {cc: 44, val: 32}, {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 50}, {cc: 16, val: 127}, 
-                {cc: 19, val: 127}, {cc: 88, val: "mod:2"}, {cc: 28, val: 64}, {cc: 29, val: 95}, {cc: 89, val: "dly:0"}, 
-                {cc: 33, val: 0}, {cc: 90, val: "rev:5"}, {cc: 34, val: 76}, {cc: 35, val: 76}, {cc: 36, val: 127},
+                // Oscillator
+                {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 0}, 
+                // LFO
+                {cc: 24, val: 0}, {cc: 26, val: 64},
+                // Filter
+                {cc: 42, val: 36}, {cc: 43, val: 32}, {cc: 44, val: 32}, {cc: 45, val: 63}, {cc: 46, val: 0}, 
+                // Envelope
+                {cc: 14, val: 50}, {cc: 16, val: 127}, {cc: 19, val: 127}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
+                // Modulation
+                {cc: 88, val: "mod:2"}, {cc: 28, val: 64}, {cc: 29, val: 95}, 
+                // Delay
+                {cc: 89, val: "dly:0"}, {cc: 30, val: 0}, {cc: 31, val: 0}, {cc: 33, val: 0}, 
+                // Reverb
+                {cc: 90, val: "rev:5"}, {cc: 34, val: 76}, {cc: 35, val: 76}, {cc: 36, val: 63}, 
+                // Arpeggiator
                 {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
             ],
+            // -------------------------------------------------------------
+
             "Massive Monks": [ 
                 {cc: 53, val: "osc:3"}, {cc: 54, val: 38}, {cc: 55, val: 6}, {cc: 42, val: 0}, {cc: 43, val: 127}, 
                 {cc: 44, val: 0}, {cc: 45, val: 0}, {cc: 46, val: 0}, {cc: 14, val: 0}, {cc: 16, val: 127}, 
