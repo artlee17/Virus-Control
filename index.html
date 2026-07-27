@@ -142,7 +142,7 @@
 
         const vP = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
         const lP = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
-        const nP = ["Blank Planet", "Cave Formation", "Copper Drone", "Digital Bath", "Distorted Vision", "Event Horizon", "Falling Star (Arp On)", "Glass Halo", "Haunted Forest", "High Scores (Arp On)", "Hot Buttered", "Ice Storm (Arp On)", "Kinda Stringy", "Massive Monks", "Parabola Pulse (Arp On)", "Passenger Drone", "Pins and Needles", "Smooth EP", "Soopasaw", "Space Gong", "Stellar Wash", "Third Eye Sweep", "Trench Grinder (Arp On)", "Upwud (Arp On)", "White Pony Tape"];
+        const nP = ["Blank Planet", "Cave Formation", "Copper Drone", "Digital Bath", "Distorted Vision", "Event Horizon", "Falling Star", "Glass Halo", "Haunted Forest", "High Scores (Arp On: 600)", "Hot Buttered", "Ice Storm (Arp On: 150)", "Kinda Stringy", "Massive Monks", "Parabola Pulse (Arp On)", "Passenger Drone", "Pins and Needles", "Smooth EP", "Soopasaw", "Space Gong", "Stellar Wash", "Third Eye Sweep", "Trench Grinder (Arp On)", "Upwud", "White Pony Tape"];
         
        // The mathematically perfect NTS-1 Presets (The 27-Parameter Fortress)
         const nts1Presets = {
@@ -197,16 +197,16 @@
                 {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
             ],
             "Event Horizon": [ 
-                {cc: 53, val: "osc:0"}, {cc: 54, val: 64}, {cc: 55, val: 0}, 
-                {cc: 24, val: 0}, {cc: 26, val: 64},
-                {cc: 42, val: 36}, {cc: 43, val: 76}, {cc: 44, val: 0}, {cc: 45, val: 63}, {cc: 46, val: 0}, 
-                {cc: 14, val: 50}, {cc: 16, val: 76}, {cc: 19, val: 95}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
-                {cc: 88, val: "mod:2"}, {cc: 28, val: 64}, {cc: 29, val: 90}, 
+                {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 55, val: 0}, 
+                {cc: 24, val: 0}, {cc: 26, val: 0},
+                {cc: 42, val: 127}, {cc: 43, val: 0}, {cc: 44, val: 0}, {cc: 45, val: 63}, {cc: 46, val: 0}, 
+                {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 127}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
+                {cc: 88, val: "mod:0"}, {cc: 28, val: 0}, {cc: 29, val: 0}, 
                 {cc: 89, val: "dly:0"}, {cc: 30, val: 0}, {cc: 31, val: 0}, {cc: 33, val: 0}, 
-                {cc: 90, val: "rev:2"}, {cc: 34, val: 64}, {cc: 35, val: 100}, {cc: 36, val: 100}, 
+                {cc: 90, val: "rev:3"}, {cc: 34, val: 127}, {cc: 35, val: 127}, {cc: 36, val: 127}, 
                 {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
             ],
-            "Falling Star (Arp On)": [ 
+            "Falling Star": [ 
                 {cc: 53, val: "osc:0"}, {cc: 54, val: 64}, {cc: 55, val: 127}, 
                 {cc: 24, val: 0}, {cc: 26, val: 64},
                 {cc: 42, val: 72}, {cc: 43, val: 0}, {cc: 44, val: 76}, {cc: 45, val: 63}, {cc: 46, val: 0}, 
@@ -236,7 +236,7 @@
                 {cc: 90, val: "rev:3"}, {cc: 34, val: 82}, {cc: 35, val: 38}, {cc: 36, val: 64}, 
                 {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
             ],
-            "High Scores (Arp On)": [ 
+            "High Scores (Arp On: 600)": [ 
                 {cc: 53, val: "osc:2"}, {cc: 54, val: 0}, {cc: 55, val: 0}, 
                 {cc: 24, val: 0}, {cc: 26, val: 64},
                 {cc: 42, val: 127}, {cc: 43, val: 0}, {cc: 44, val: 0}, {cc: 45, val: 80}, {cc: 46, val: 100}, 
@@ -256,7 +256,7 @@
                 {cc: 90, val: "rev:0"}, {cc: 34, val: 0}, {cc: 35, val: 0}, {cc: 36, val: 0}, 
                 {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
             ],
-            "Ice Storm (Arp On)": [ 
+            "Ice Storm (Arp On: 150)": [ 
                 {cc: 53, val: "osc:1"}, {cc: 54, val: 0}, {cc: 55, val: 0}, 
                 {cc: 24, val: 0}, {cc: 26, val: 64},
                 {cc: 42, val: 18}, {cc: 43, val: 0}, {cc: 44, val: 127}, {cc: 45, val: 127}, {cc: 46, val: 85}, 
@@ -286,7 +286,7 @@
                 {cc: 90, val: "rev:4"}, {cc: 34, val: 64}, {cc: 35, val: 127}, {cc: 36, val: 127}, 
                 {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
             ],
-            "Parabola Pulse (Arp On)": [ 
+            "Parabola Pulse": [ 
                 {cc: 53, val: "osc:2"}, {cc: 54, val: 64}, {cc: 55, val: 0}, 
                 {cc: 24, val: 0}, {cc: 26, val: 64},
                 {cc: 42, val: 18}, {cc: 43, val: 51}, {cc: 44, val: 0}, {cc: 45, val: 100}, {cc: 46, val: 64}, 
@@ -376,7 +376,7 @@
                 {cc: 90, val: "rev:0"}, {cc: 34, val: 0}, {cc: 35, val: 0}, {cc: 36, val: 0}, 
                 {cc: 117, val: 96}, {cc: 118, val: 0}, {cc: 119, val: 12} 
             ],
-            "Upwud (Arp On)": [ 
+            "Upwud": [ 
                 {cc: 53, val: "osc:0"}, {cc: 54, val: 0}, {cc: 55, val: 127}, 
                 {cc: 24, val: 0}, {cc: 26, val: 25}, 
                 {cc: 42, val: 18}, {cc: 43, val: 0}, {cc: 44, val: 127}, {cc: 45, val: 80}, {cc: 46, val: 80}, 
