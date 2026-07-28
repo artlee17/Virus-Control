@@ -111,7 +111,7 @@
         // KORG NTS-1 SDK CONFIGURATION (HARDWARE-LOCKED)
         // ==============================================================
         const korgSDK = {
-            userOscillators: 7, 
+            userOscillators: 8, 
             userMods: 1,        
             userDelays: 0,      
             userReverbs: 2      
@@ -142,7 +142,7 @@
 
         const vP = ["A1 First", "B74 Short", "B74 Long", "B3", "Indigo A84", "Virus A18", "Piano", "Movie Str", "Organ Int", "Atmo Real", "Pad Exp", "Outer W", "Stellar", "Man Steel", "Braaam", "Drone", "Cinematic", "NinthHvn", "I Made This", "Space Brass", "Crystal"];
         const lP = ["Cinema Strings", "American Grand", "Sci-fi Strings", "Voices & Strings", "Pluton", "Storm", "Dune", "Awakening", "Golden Fields", "Lost Bells", "Other Worlds", "Post-Apocalypse", "The Thing Bass Seq"];
-        const nP = ["Black Horizon", "Cave Formation", "Circuit Bells", "DigiCrush", "Distorted Vision", "Event Horizon", "Falling Star", "Future Echoes", "Haunted Forest", "High Scores (Arp On: 600)", "Hot Buttered", "Ice Storm (Arp On: 150)", "Kinda Stringy", "Massive Monks", "Parallel Worlds", "Pulse Fragment (Arp On: 120", "Pins and Needles", "Retro Wash", "Soopasaw", "Space Gong", "Stalker", "Storm Outside", "Titan Sub", "Upwud", "Welp"];
+        const nP = ["Black Horizon", "Cave Formation", "Circuit Bells", "DigiCrush", "Distorted Vision", "Event Horizon", "Falling Star", "Future Echoes", "Haunted Forest", "High Scores (Arp On: 600)", "Hot Buttered", "Ice Storm (Arp On: 150)", "Kinda Stringy", "Massive Monks", "Parallel Worlds", "Pins and Needles", "Pulse Fragment (Arp On: 120", "Retro Wash", "Soopasaw", "Space Gong", "Stalker", "Storm Outside", "Titan Sub", "Upwud", "Welp"];
         
        // The mathematically perfect NTS-1 Presets (The 27-Parameter Fortress)
         const nts1Presets = {
@@ -296,16 +296,6 @@
                 {cc: 90, val: "rev:7"}, {cc: 34, val: 90}, {cc: 35, val: 85}, {cc: 36, val: 75}, 
                 {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0} 
             ],
-            "Pulse Fragment (Arp On: 120)": [ 
-                {cc: 53, val: "osc:10"}, {cc: 54, val: 85}, {cc: 55, val: 25}, 
-                {cc: 24, val: 95}, {cc: 26, val: 85},
-                {cc: 42, val: 0}, {cc: 43, val: 50}, {cc: 44, val: 85}, {cc: 45, val: 96}, {cc: 46, val: 85}, 
-                {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 20}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
-                {cc: 88, val: "mod:3"}, {cc: 28, val: 45}, {cc: 29, val: 90}, 
-                {cc: 89, val: "dly:3"}, {cc: 30, val: 75}, {cc: 31, val: 45}, {cc: 33, val: 65}, 
-                {cc: 90, val: "rev:3"}, {cc: 34, val: 85}, {cc: 35, val: 75}, {cc: 36, val: 40}, 
-                {cc: 117, val: 64}, {cc: 118, val: 64}, {cc: 119, val: 80}
-            ],
             "Pins and Needles": [ 
                 {cc: 53, val: "osc:2"}, {cc: 54, val: 127}, {cc: 55, val: 127}, 
                 {cc: 24, val: 0}, {cc: 26, val: 64},
@@ -314,7 +304,17 @@
                 {cc: 88, val: "mod:0"}, {cc: 28, val: 0}, {cc: 29, val: 0}, 
                 {cc: 89, val: "dly:4"}, {cc: 30, val: 64}, {cc: 31, val: 127}, {cc: 33, val: 127}, 
                 {cc: 90, val: "rev:1"}, {cc: 34, val: 64}, {cc: 35, val: 64}, {cc: 36, val: 0}, 
-                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}
+                {cc: 117, val: 0}, {cc: 118, val: 0}, {cc: 119, val: 0}    
+            ],
+            "Pulse Fragment (Arp On: 120)": [ 
+                {cc: 53, val: "osc:10"}, {cc: 54, val: 85}, {cc: 55, val: 25}, 
+                {cc: 24, val: 95}, {cc: 26, val: 85},
+                {cc: 42, val: 0}, {cc: 43, val: 50}, {cc: 44, val: 85}, {cc: 45, val: 96}, {cc: 46, val: 85}, 
+                {cc: 14, val: 0}, {cc: 16, val: 0}, {cc: 19, val: 20}, {cc: 20, val: 0}, {cc: 21, val: 0}, 
+                {cc: 88, val: "mod:3"}, {cc: 28, val: 45}, {cc: 29, val: 90}, 
+                {cc: 89, val: "dly:3"}, {cc: 30, val: 75}, {cc: 31, val: 45}, {cc: 33, val: 65}, 
+                {cc: 90, val: "rev:3"}, {cc: 34, val: 85}, {cc: 35, val: 75}, {cc: 36, val: 40}, 
+                {cc: 117, val: 64}, {cc: 118, val: 64}, {cc: 119, val: 80}            
             ],
             "Retro Wash": [ 
                 {cc: 53, val: "osc:6"}, {cc: 54, val: 64}, {cc: 55, val: 64}, 
